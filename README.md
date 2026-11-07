@@ -2,6 +2,7 @@
 
 单文件文字放置游戏，用浏览器打开 `index.html` 即可游玩。
 或打开`https://cloryYH.github.io/XYidle/`
+[点击这里在线游玩](https://cloryYH.github.io/XYidle/)
 
 ## 主要玩法
 
