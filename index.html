@@ -50,8 +50,10 @@
   }
   body.red-phase::before{box-shadow:inset 0 0 150px rgba(74,28,16,.10)}
   body.ash-phase::before{
-    background:radial-gradient(circle at 50% 44%,transparent 50%,rgba(24,21,17,.12) 100%);
-    box-shadow:inset 0 0 190px rgba(35,30,24,.22);
+    background:
+      radial-gradient(circle at 50% 42%,transparent 34%,rgba(24,21,17,.24) 78%,rgba(18,15,12,.34) 100%),
+      linear-gradient(180deg,rgba(24,20,15,.08),transparent 22%,transparent 76%,rgba(24,20,15,.14));
+    box-shadow:inset 0 0 260px rgba(35,30,24,.38);
   }
   .bg{
     position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -1129,7 +1131,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.2';
+const GAME_VERSION = 'v0.2.3';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1851,7 +1853,7 @@ function defaultState(){
     breakBuff: 0,
     log: [],
     milestones: [],
-    stats: { playTime:0, runTime:0, kills:0, battles:0, wins:0, pills:0, rebirths:0, maxLevel:2, flamePeak:0, storyMax:0 },
+    stats: { playTime:0, runTime:0, kills:0, battles:0, wins:0, pills:0, rebirths:0, maxLevel:2, storyMax:0 },
     tm: { brk:0, craft:0, story:0, event:18, save:0 },
     endSeen: false,
     _phaseSeen: 'orange',
@@ -1896,7 +1898,6 @@ function addFlame(id, silent){
   const oldMax = S.wickMax;
   S.flames.push(id);
   addMilestone('flame', (silent ? '携带' : '收服') + '异火「' + FLAME_BY_ID[id].name + '」');
-  if(S.stats) S.stats.flamePeak = Math.max(S.stats.flamePeak || 0, S.flames.length);
   if(S.seenFlames.indexOf(id) < 0){
     if(!S.flameFirst) S.flameFirst = {};
     if(!S.flameFirst[id]) S.flameFirst[id] = { cycle: S.cycle, t: Math.floor(S.stats.runTime) };
@@ -4087,20 +4088,20 @@ function buyRepeat(id){
 
 /* ---------- 轮回 ---------- */
 function rebirthBreakdown(){
-  const peak = Math.max(S.flames.length, (S.stats && S.stats.flamePeak) || 0);
+  const hasDiyan = S.flames.indexOf('diyan') >= 0;
   const parts = {
     level: S.level * 2 + 10,
     story: S.story * 8 + 10,
-    flames: peak * 21,
-    dex: S.seenFlames.length * 3
+    dex: hasDiyan ? 0 : S.seenFlames.length * 3,
+    diyan: hasDiyan ? 1000 : 0
   };
-  const base = parts.level + parts.story + parts.flames + parts.dex;
+  const base = parts.level + parts.story + parts.dex;
   const mem1 = hasTree('mem1') ? Math.round(base * 0.35) : 0;
   const mem2 = hasTree('mem2') ? Math.round(base * 0.40) : 0;
   const rcry = Math.round(base * 0.03 * ((S.repeat && S.repeat.rcry) || 0));
   const adjusted = base + mem1 + mem2 + rcry;
   const corrBonus = Math.round(adjusted * 0.06 * (S.corruption || 0));
-  const total = Math.max(1, adjusted + corrBonus);
+  const total = Math.max(1, adjusted + corrBonus + parts.diyan);
   return { parts: parts, base: base, mem1: mem1, mem2: mem2, rcry: rcry, adjusted: adjusted, corrBonus: corrBonus, total: total };
 }
 function rebirthGain(){ return rebirthBreakdown().total; }
@@ -4146,7 +4147,7 @@ function rebirth(){
   S.story = 0; S.mode = 'cultivate'; S.seclusionFails = 0; S.region = 0;
   S.breakBuff = 0; S.tm = { brk:0, craft:0, story:0, event:15, save:0 };
   S.stats.runTime = 0; S.stats.kills = 0; S.stats.battles = 0; S.stats.wins = 0;
-  S.stats.pills = 0; S.stats.flamePeak = 0;
+  S.stats.pills = 0;
   S.pillDebuff = 0;
   S.injured = 0;
   S.limitedCd = 0;
@@ -4169,7 +4170,6 @@ function rebirth(){
 function fuseDiyan(){
   if(S.flames.indexOf('diyan') >= 0) return { ok:false, msg:'帝炎已成' };
   if(S.seenFlames.length < FLAME_TOTAL - 2) return { ok:false, msg:'异火图鉴未齐（' + S.seenFlames.length + '/' + (FLAME_TOTAL - 2) + '，虚无吞炎尚在魂天帝手中）' };
-  if(S.stats) S.stats.flamePeak = Math.max(S.stats.flamePeak || 0, S.flames.length);
   const oldMax = S.wickMax;
   S.flames = ['diyan'];
   if(S.seenFlames.indexOf('diyan') < 0){
@@ -4325,6 +4325,165 @@ function compactSnapshot(){
   }
   return o;
 }
+
+/* ---------- 导出存档紧凑编码 ----------
+   顶层与常用嵌套字段改短名，异火 / 伙伴 / 丹药 ID 改为数字索引。
+   仍保留导入旧 XYE1 / XYE0 / XYL1 的能力。 */
+const SAVE_KEY_NAMES = [
+  'version','cycle','corruption','nextCorruption','level','qi','herbs','cores','gifts',
+  'timeCrystal','timeBuff','crystals','wick','wickMax','pillDebuff','injured','limitedCd',
+  'diyinGiven','diyinLearned','mode','seclusionFails','region','flames','partners','affinity',
+  'seenFlames','flameFirst','seenPartners','pills','lastPillId','storyCrafted','craftFailStreak',
+  'alchemyLevel','alchemyExp','alchemyUpgrade','fireCult','merchant','traveler','flameResidualUsed',
+  'soulHuntDefeated','flameMaxBonus','flameIntel','control','rebirthUnlocked','story','storyOrder',
+  'ashStrikeUsed','storyCdMax','storyCdFail','tree','repeat','carry','carryOn','auto','settings',
+  'tutorialDone','seenUnlocks','seenEvents','breakBuff','milestones','stats','tm','endSeen',
+  '_phaseSeen','_flamePity','lastSave',
+  'playTime','runTime','kills','battles','wins','pills','rebirths','maxLevel','storyMax',
+  'brk','craft','event','save','storyThreshold','craftId','priorityStory','storyPowerMode',
+  'skipUnlockPopups','yield','core','herb','frugal','coreOn','herbOn','power','alchemy','pill',
+  'lotus','seclusion','initialized','slots','mysteryUsed','mysteryCount','done','rescued',
+  'returnCount','returnDone','intel','crystal','order','readyAt','kind','resource','amount',
+  'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text'
+];
+const SAVE_ALPHA = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const SAVE_KEY_ENC = {}, SAVE_KEY_DEC = {};
+(function buildSaveKeyMap(){
+  const seen = {};
+  SAVE_KEY_NAMES.forEach(function(k){
+    if(seen[k]) return;
+    seen[k] = true;
+    const i = Object.keys(seen).length - 1;
+    const short = i < 62 ? SAVE_ALPHA[i] : SAVE_ALPHA[Math.floor(i / 62) - 1] + SAVE_ALPHA[i % 62];
+    SAVE_KEY_ENC[k] = short;
+    SAVE_KEY_DEC[short] = k;
+  });
+})();
+const FLAME_INDEX = {}, PARTNER_INDEX = {}, PILL_INDEX = {};
+FLAMES.forEach(function(f, i){ FLAME_INDEX[f.id] = i; });
+PARTNERS.forEach(function(p, i){ PARTNER_INDEX[p.id] = i; });
+PILLS.forEach(function(p, i){ PILL_INDEX[p.id] = i; });
+function saveShortKey(k){ return SAVE_KEY_ENC[k] || ('~' + k); }
+function saveLongKey(k){ return SAVE_KEY_DEC[k] || (k.charAt(0) === '~' ? k.slice(1) : k); }
+function saveEncodeId(v, table){
+  return v !== null && v !== undefined && table[v] !== undefined ? table[v] : v;
+}
+function saveDecodeId(v, list){
+  return typeof v === 'number' && list[v] ? list[v].id : v;
+}
+function saveEncodeIdMap(obj, table, encodeValue){
+  const out = {};
+  for(const k in obj){
+    out[table[k] !== undefined ? table[k] : k] = encodeValue ? saveEncodeObject(obj[k]) : obj[k];
+  }
+  return out;
+}
+function saveDecodeIdMap(obj, list, decodeValue){
+  const out = {};
+  for(const k in obj){
+    const id = (typeof list[k] === 'object' && list[k]) ? list[k].id : k;
+    out[id] = decodeValue ? saveDecodeObject(obj[k]) : obj[k];
+  }
+  return out;
+}
+function saveEncodeObject(o){
+  const out = {};
+  for(const k in o){
+    out[saveShortKey(k)] = saveEncodeValue(k, o[k]);
+  }
+  return out;
+}
+function saveDecodeObject(o){
+  const out = {};
+  for(const k in o){
+    const key = saveLongKey(k);
+    out[key] = saveDecodeValue(key, o[k]);
+  }
+  return out;
+}
+function saveEncodeValue(key, v){
+  if(v === null || v === undefined) return v;
+  if(key === 'flames' || key === 'seenFlames') return v.map(function(id){ return saveEncodeId(id, FLAME_INDEX); });
+  if(key === 'partners' || key === 'seenPartners') return v.map(function(id){ return saveEncodeId(id, PARTNER_INDEX); });
+  if(key === 'lastPillId' || key === 'craftId' || key === 'pillId') return saveEncodeId(v, PILL_INDEX);
+  if(key === 'carry') return saveEncodeId(v, FLAME_INDEX);
+  if(key === 'pills' && typeof v !== 'object') return v;
+  if(key === 'pills' || key === 'affinity') return saveEncodeIdMap(v, key === 'pills' ? PILL_INDEX : PARTNER_INDEX);
+  if(key === 'craftFailStreak') return saveEncodeIdMap(v, PILL_INDEX);
+  if(key === 'flameFirst') return saveEncodeIdMap(v, FLAME_INDEX, true);
+  if(key === 'storyCrafted') return Object.keys(v).filter(function(id){ return v[id]; }).map(function(id){ return saveEncodeId(id, PILL_INDEX); });
+  if(key === 'tree' || key === 'seenUnlocks' || key === 'seenEvents'){
+    return Object.keys(v).filter(function(id){ return v[id]; });
+  }
+  if(Array.isArray(v)) return v.map(function(x){ return x && typeof x === 'object' ? saveEncodeObject(x) : x; });
+  if(typeof v === 'object') return saveEncodeObject(v);
+  return v;
+}
+function saveDecodeValue(key, v){
+  if(v === null || v === undefined) return v;
+  if(key === 'flames' || key === 'seenFlames') return v.map(function(id){ return saveDecodeId(id, FLAMES); });
+  if(key === 'partners' || key === 'seenPartners') return v.map(function(id){ return saveDecodeId(id, PARTNERS); });
+  if(key === 'lastPillId' || key === 'craftId' || key === 'pillId') return saveDecodeId(v, PILLS);
+  if(key === 'carry') return saveDecodeId(v, FLAMES);
+  if(key === 'pills' && typeof v !== 'object') return v;
+  if(key === 'pills' || key === 'affinity') return saveDecodeIdMap(v, key === 'pills' ? PILLS : PARTNERS);
+  if(key === 'craftFailStreak') return saveDecodeIdMap(v, PILLS);
+  if(key === 'flameFirst') return saveDecodeIdMap(v, FLAMES, true);
+  if(key === 'storyCrafted'){
+    const out = {};
+    v.forEach(function(id){ out[saveDecodeId(id, PILLS)] = true; });
+    return out;
+  }
+  if(key === 'tree' || key === 'seenUnlocks' || key === 'seenEvents'){
+    const out = {};
+    v.forEach(function(id){ out[id] = true; });
+    return out;
+  }
+  if(Array.isArray(v)) return v.map(function(x){ return x && typeof x === 'object' ? saveDecodeObject(x) : x; });
+  if(typeof v === 'object') return saveDecodeObject(v);
+  return v;
+}
+const BASE85_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#';
+function base85Encode(bytes){
+  const pad = (4 - (bytes.length % 4)) % 4;
+  let out = String(pad);
+  for(let i = 0; i < bytes.length; i += 4){
+    const b0 = bytes[i] || 0, b1 = bytes[i + 1] || 0, b2 = bytes[i + 2] || 0, b3 = bytes[i + 3] || 0;
+    let v = (((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) >>> 0);
+    let chunk = '';
+    for(let j = 0; j < 5; j++){
+      chunk = BASE85_ALPHABET.charAt(v % 85) + chunk;
+      v = Math.floor(v / 85);
+    }
+    out += chunk;
+  }
+  return out;
+}
+function base85Decode(str){
+  if(!str) return new Uint8Array(0);
+  const pad = parseInt(str.charAt(0), 10);
+  if(pad < 0 || pad > 3) throw new Error('存档编码无效');
+  const data = str.slice(1);
+  if(data.length % 5 !== 0) throw new Error('存档编码长度无效');
+  const out = new Uint8Array(data.length / 5 * 4 - pad);
+  let pos = 0;
+  for(let i = 0; i < data.length; i += 5){
+    let v = 0;
+    for(let j = 0; j < 5; j++){
+      const d = BASE85_ALPHABET.indexOf(data.charAt(i + j));
+      if(d < 0) throw new Error('存档编码字符无效');
+      v = v * 85 + d;
+    }
+    if(pos + 4 <= out.length + pad){
+      out[pos++] = (v >>> 24) & 255;
+      out[pos++] = (v >>> 16) & 255;
+      out[pos++] = (v >>> 8) & 255;
+      out[pos++] = v & 255;
+    }
+  }
+  return out;
+}
+
 function bytesToB64(bytes){
   let s = '';
   const chunk = 0x8000;
@@ -4360,13 +4519,18 @@ async function inflateRawBytes(bytes){
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 async function exportSaveText(){
-  const json = JSON.stringify(compactSnapshot());
-  const bytes = new TextEncoder().encode(json);
+  const raw = JSON.stringify(compactSnapshot());
+  const packed = JSON.stringify(saveEncodeObject(compactSnapshot()));
+  const bytes = new TextEncoder().encode(packed);
   const z = await deflateRawBytes(bytes);
-  return z ? ('XYE1:' + b64UrlEncode(z)) : ('XYE0:' + b64UrlEncode(bytes));
+  return z ? ('XYE2:' + base85Encode(z)) : ('XYE0:' + b64UrlEncode(new TextEncoder().encode(raw)));
 }
 async function decodeSaveText(text){
   const t = String(text || '').trim();
+  if(t.indexOf('XYE2:') === 0){
+    const raw = await inflateRawBytes(base85Decode(t.slice(5)));
+    return saveDecodeObject(JSON.parse(new TextDecoder().decode(raw)));
+  }
   if(t.indexOf('XYE1:') === 0){
     const raw = await inflateRawBytes(b64ToBytes(t.slice(5)));
     return JSON.parse(new TextDecoder().decode(raw));
@@ -4413,7 +4577,6 @@ function loadGame(){
     if(!o.craftFailStreak || typeof o.craftFailStreak !== 'object') o.craftFailStreak = {};
     if(!o.stats) o.stats = d.stats;
     for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
-    o.stats.flamePeak = Math.max(o.stats.flamePeak || 0, (o.flames || []).length);
     o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
     if(storyOrder === 2){
       o.story = mapStoryOrder2(o.story);
@@ -4932,7 +5095,7 @@ function renderHUD(){
       effect = ph === 'red' ? '挂机效率与战力 -20%' : '挂机效率与战力正常';
     }
     $('emberTip').innerHTML = '<div class="et-title">本源火种</div>' +
-      '<div class="et-line">火种随在线时间流逝，燃尽后本世结束；暗红后可入轮回，灰烬中还可燃命一击。</div>' +
+      '<div class="et-line">火种随时间流逝，燃尽后将寸步难行；从暗红阶段开始可以进入轮回，进入灰烬阶段后只能用燃命一击挑战最后一次剧情</div>' +
       '<div class="et-line" style="margin-top:4px">当前阶段：<b>' + phaseName() + '</b></div>' +
       '<div class="et-line">阶段倒计时：<b>' + countdown + '</b></div>' +
       '<div class="et-line">当前效果：<b>' + effect + '</b></div>';
@@ -5668,6 +5831,17 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.3</span><span class="cl-date">2026-11-07</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>修复轮回结算中异火峰值数量显示错误</li>' +
+            '<li>取消异火峰值机制，其他异火不再作为峰值叠加</li>' +
+            '<li>帝炎固定提供 1000 火晶，合成后不再叠加异火图鉴分</li>' +
+            '<li>灰烬阶段的暗角与背景阴影加强</li>' +
+            '<li>调整火种提示框的机制说明</li>' +
+            '<li>导出存档改用短字段名、数字 ID 与 Base85 编码，缩短导出串</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.2</span><span class="cl-date">2026-11-07</span></summary>' +
           '<ul class="cl-list">' +
             '<li>成人礼前新增过渡剧情「焚诀初修」</li>' +
@@ -5876,7 +6050,6 @@ async function handleSetting(act){
     if(!o.craftFailStreak || typeof o.craftFailStreak !== 'object') o.craftFailStreak = {};
       if(!o.stats) o.stats = d.stats;
       for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
-      o.stats.flamePeak = Math.max(o.stats.flamePeak || 0, o.flames.length);
       o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
       if(storyOrder === 2){
         o.story = mapStoryOrder2(o.story);
@@ -6054,16 +6227,15 @@ function renderRebirth(){
       : '火种尚在橙红，需转入暗红后才可轮回。';
   }
   if($('rebirthBreakdown')){
-    const peak = Math.round(bd.parts.flames / 14);
     const row = function(label, val, cls, plus){
       return '<div class="stat-line ' + (cls || '') + '"><span class="k">' + label + '</span><span class="v">' +
         (plus ? '+' : '') + fmt(val) + '</span></div>';
     };
     let html = row('境界 · ' + LEVELS[S.level].name, bd.parts.level, '', true) +
       row('剧情进度 · ' + S.story + ' / ' + NODES.length, bd.parts.story, '', true) +
-      row('本世异火峰值 · ' + peak + ' 朵', bd.parts.flames, '', true) +
-      row('异火图鉴 · ' + S.seenFlames.length + ' / ' + FLAME_TOTAL, bd.parts.dex, '', true) +
-      row('基础小计', bd.base, 'sub', false);
+      (!bd.parts.diyan ? row('异火图鉴 · ' + S.seenFlames.length + ' / ' + FLAME_TOTAL, bd.parts.dex, '', true) : '') +
+      row('基础小计', bd.base, 'sub', false) +
+      (bd.parts.diyan ? row('帝炎 · 焚诀大成（固定）', bd.parts.diyan, '', true) : '');
     if(bd.mem1) html += row('轮回记忆·一 +35%', bd.mem1, '', true);
     if(bd.mem2) html += row('轮回记忆·二 +40%', bd.mem2, '', true);
     if(bd.rcry) html += row('火晶共鸣 · ' + S.repeat.rcry + ' 级', bd.rcry, '', true);
