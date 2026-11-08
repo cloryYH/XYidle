@@ -515,6 +515,16 @@
   .codex-card.unknown .nm{color:var(--muted);letter-spacing:2px}
   .codex-card .cond{font-size:10px;color:var(--gold);margin-top:3px;line-height:1.55}
   .codex-card .ds{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.6}
+  .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .ach-card{
+    padding:9px 10px;border:1px solid rgba(36,92,69,.2);border-radius:6px 10px 5px 8px;
+    background:transparent;
+  }
+  .ach-card.locked{opacity:.58;border-style:dashed}
+  .ach-card .an{font-size:12.5px;font-weight:700;color:var(--ink)}
+  .ach-card.locked .an{color:var(--muted)}
+  .ach-card .ac{font-size:10px;color:var(--gold);margin-top:3px;line-height:1.55}
+  .ach-card .ar{font-size:10px;color:var(--dim);margin-top:4px;line-height:1.5}
   .story-item{
     display:flex;align-items:center;gap:8px;text-align:left;width:100%;
     padding:8px 9px;border-radius:7px;border:1px solid var(--line);
@@ -742,6 +752,7 @@
     .dex-grid{grid-template-columns:1fr 1fr}
     .story-dex{grid-template-columns:1fr}
     .codex-grid{grid-template-columns:1fr}
+    .ach-grid{grid-template-columns:1fr}
     .hud-stats .realm-name{font-size:16px}
   }
   @media (min-width:860px){
@@ -1050,6 +1061,12 @@
         <div class="hint">未遭遇的奇遇只显示问号与出现条件。</div>
         <div class="codex-grid" id="eventDex" style="margin-top:10px"></div>
       </div>
+
+      <div class="card">
+        <div class="card-title"><span>成就</span><span class="sub" id="achCount">0 / 6</span></div>
+        <div class="hint">没有奖励，达成条件后永久点亮；记录解锁时的轮回与累计在线时间。</div>
+        <div class="ach-grid" id="achievementList" style="margin-top:10px"></div>
+      </div>
     </section>
 
     <!-- ============ 轮回 ============ -->
@@ -1131,7 +1148,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.3';
+const GAME_VERSION = 'v0.2.4';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1245,7 +1262,7 @@ const NODES = [
     win:'一场各取所需的交易，谁也没提姓名。分别时她只留下一句：“云岚宗，莫要来。”',
     partners:['yunyun'], flame:null, key:null, reward:{qi:1.3, herb:1, core:0.8, wick:180} },
   { title:'青莲地心火', place:'塔戈尔沙漠 · 地底熔岩', lvl:19, mult:1.35, req:19, region:2,
-    desc:'服下青莲护心丹，萧炎潜入塔戈尔沙漠地底。熔岩湖心青莲盛放，莲心一点青火。蛇人族女王美杜莎正在不远处蜕变，气息紊乱。',
+    desc:'服下血莲丹，萧炎潜入塔戈尔沙漠地底。熔岩湖心青莲盛放，莲心一点青火。蛇人族女王美杜莎正在不远处蜕变，气息紊乱。',
     win:'青莲地心火入体，焚诀第一次真正转动。美杜莎化蛇而去，海波东的封印也就此解开。',
     partners:['haibodong','meidusha'], flame:'qinglian', key:'lianxin', reward:{qi:1.5, herb:1.4, core:1.2, wick:240} },
   { title:'佛怒火莲', place:'加玛帝国 · 墨家', lvl:25, mult:1.15, req:25, region:-1,
@@ -1311,7 +1328,7 @@ const NODES = [
   { title:'古族成人礼', place:'古界 · 天墓', lvl:79, mult:1.85, req:78, region:9,
     desc:'薰儿一身金衣立于古界之巅。天墓深处，萧玄残魂睁开了眼，目光如万古长夜。',
     win:'三族血脉相融，天墓传承入体。薰儿把金帝焚天炎的本源分了一缕给你，耳根通红。',
-    partners:['guyuan','xiaoxuan','xiaoxiao'], flame:'jindi', key:'tianhun', reward:{qi:2.6, herb:3.5, core:3.5, wick:720} },
+    partners:['guyuan','xiaoxuan'], flame:'jindi', key:'tianhun', reward:{qi:2.6, herb:3.5, core:3.5, wick:720} },
   { title:'菩提三宝', place:'莽荒古域 · 菩提古树', lvl:81, mult:1.7, req:80, region:-1,
     desc:'菩提古树三千年一结果，树冠之上菩提心缓缓旋转，树下强者如林。',
     win:'菩提心入体，灵魂之力大涨。古树枯萎前，落下最后一片金叶。',
@@ -1461,7 +1478,7 @@ const PARTNERS = [
   { id:'xiaoxuan', name:'萧玄', title:'萧族先祖', gender:'男', romance:false, node:20,
     power:0.10, qi:0.08, herb:0.02,
     desc:'萧族最后一位斗帝血脉，燃尽残魂为你铺路。' },
-  { id:'xiaoxiao', name:'萧潇', title:'萧家 · 长女', gender:'女', romance:false, node:20,
+  { id:'xiaoxiao', name:'萧潇', title:'萧家 · 长女', gender:'女', romance:false, node:25,
     power:0.03, qi:0.03, herb:0.05,
     desc:'你与彩鳞的女儿，一出生便有斗宗之资。' },
   { id:'xiaozhan', name:'萧战', title:'萧家族长', gender:'男', romance:false, node:25,
@@ -1507,7 +1524,13 @@ const EXTRA_STORY = [
     node:{ title:'空间交易会', place:'中州 · 空间交易会', lvl:80, mult:0.75, req:82, region:-1, side:true,
       desc:'中州空间交易会，各方强者以物易物。萧炎用一卷古遗迹残图换到进入血池的资格，也在会上听到魂族调动的风声。',
       win:'血池淬体，气息再进一层；交易会散场时，萧炎已记下数条通往魂族的线索。',
-      partners:[], flame:null, key:null, reward:{qi:2.8, herb:4, core:4, wick:700} } }
+      partners:[], flame:null, key:null, reward:{qi:2.8, herb:4, core:4, wick:700} } },
+  { after:25, detail:
+    `<p>天府联盟与魂族的全面战争终于爆发。葬天山脉黑云压顶，魂族大军铺天盖地，八星斗圣魂元天现身阻拦。</p><p>千年前，他曾参与围攻萧玄；千年后，他又被魂族从死亡中拉回。萧炎以帝境灵魂看破他的魂体，毁灭火莲在阵前炸开，魂元天的气息终于开始崩散。</p>`,
+    node:{ title:'葬天山脉', place:'葬天山脉 · 魂族战场', lvl:89, mult:1.95, req:89, region:-1,
+      desc:'天府联盟与魂族全面开战，葬天山脉黑云压城。魂族八星斗圣魂元天现身阻拦；他是千年前围攻萧玄的旧敌，如今又被魂族复活。',
+      win:'帝境灵魂锁住魂体，毁灭火莲在阵前爆开。魂元天魂体崩散，葬天山脉的魂族大军溃退，通往古帝洞府的路开了。',
+      partners:[], flame:null, key:null, reward:{qi:3.5, herb:5.5, core:5.8, wick:1100} } }
 ];
 const STORY_OLD_TO_NEW = [];
 (function insertExtraStory(){
@@ -1546,9 +1569,64 @@ function mapStoryOrder2(v){
   else if(v >= 5) n = v + 2;
   return clamp(n, 0, NODES.length);
 }
+function mapStoryOrder3(v){
+  v = v | 0;
+  // 天墓之后新增「葬天山脉」：旧顺序中完成古帝洞府及之后的进度 +1
+  return clamp(v >= 32 ? v + 1 : v, 0, NODES.length);
+}
 function storyDone(title){
   const idx = NODES.findIndex(function(n){ return n.title === title; });
   return idx >= 0 && S.story > idx;
+}
+function storyEverDone(title){
+  const idx = NODES.findIndex(function(n){ return n.title === title; });
+  const maxStory = Math.max(S.story || 0, (S.stats && S.stats.storyMax) || 0);
+  return idx >= 0 && maxStory > idx;
+}
+function maxLevelEver(){
+  return Math.max(S.level || 0, (S.stats && S.stats.maxLevel) || 0);
+}
+function achievementById(id){
+  return ACHIEVEMENTS.find(function(a){ return a.id === id; }) || null;
+}
+function unlockAchievement(id, silent){
+  const a = achievementById(id);
+  if(!a) return false;
+  if(!S.achievements || typeof S.achievements !== 'object') S.achievements = {};
+  if(S.achievements[id]) return false;
+  S.achievements[id] = {
+    cycle: S.cycle || 1,
+    time: Math.floor((S.stats && S.stats.playTime) || 0)
+  };
+  if(!silent && typeof toast === 'function'){
+    toast('获得成就「' + a.name + '」', false, 3200);
+  }
+  if(typeof renderAchievements === 'function' && typeof activeTab !== 'undefined' && activeTab === 'gallery'){
+    renderAchievements(true);
+  }
+  if(typeof save === 'function' && !S._noSave) save();
+  return true;
+}
+function addAchievementProgress(id, amount){
+  if(!S.achievementProgress || typeof S.achievementProgress !== 'object') S.achievementProgress = {};
+  const a = achievementById(id);
+  if(!a || S.achievements[id]) return false;
+  const n = (S.achievementProgress[id] || 0) + (amount || 1);
+  S.achievementProgress[id] = n;
+  if(a.goal && n >= a.goal) unlockAchievement(id);
+  else if(typeof renderAchievements === 'function' && typeof activeTab !== 'undefined' && activeTab === 'gallery') renderAchievements(true);
+  return true;
+}
+function recordLotusKill(){ addAchievementProgress('lotus5', 1); }
+function checkLevelAchievements(){
+  const lv = maxLevelEver();
+  if(lv >= 54) unlockAchievement('douhuang', true);
+  if(lv >= 82) unlockAchievement('dousheng', true);
+}
+function checkAllAchievements(){
+  checkLevelAchievements();
+  if(S.flames && S.flames.indexOf('diyan') >= 0) unlockAchievement('diyan', true);
+  if(S.seenPartners && S.seenPartners.indexOf('xiaoxiao') >= 0) unlockAchievement('daughter', true);
 }
 
 
@@ -1569,8 +1647,8 @@ const PILLS = [
     mats:'常青花、玉髓芝、二阶木系魔核', desc:'药力护住经脉，冲关时少一分反噬。' },
   { id:'xingshen', name:'醒神丹', tier:3, type:'break', pct:0.12,
     mats:'清心三叶草、佛心果、三阶魔核', desc:'心神清明，感应天地能量更敏锐。' },
-  { id:'lianxin', name:'青莲护心丹', tier:3, type:'key', pct:0,
-    mats:'青莲叶、火莲果、三阶火系魔核', desc:'青莲药力护住心脉，可抵地底熔岩热浪。' },
+  { id:'lianxin', name:'血莲丹', tier:3, type:'key', pct:0,
+    mats:'血莲叶、火莲果、三阶火系魔核', desc:'血莲药力护住心脉，可抵地底熔岩热浪。' },
   { id:'zixin', name:'紫心破障丹', tier:4, type:'break', pct:0.16,
     mats:'紫心草、破障花、四阶魔核', desc:'紫气冲关，专破瓶颈。' },
   { id:'douling', name:'斗灵丹', tier:5, type:'break', pct:0.20,
@@ -1605,6 +1683,14 @@ PILLS.forEach(function(p){ PILL_BY_ID[p.id] = p; });
 /* 火晶商店 · 树状 */
 const TREE = [
   { id:'battlefire', name:'战火初燃', cost:30, req:[], desc:'解锁战斗战术：引火、火铠' },
+  { id:'skip1', name:'以战养战', cost:90, req:[], story:'云岚宗决战',
+    desc:'每世前 3 场回合战斗，战力达标时可直接跳过' },
+  { id:'skip2', name:'摧枯拉朽', cost:260, req:['skip1'], story:'魂殿救师',
+    desc:'每世前 7 场回合战斗，战力达标时可直接跳过' },
+  { id:'meridian1', name:'经脉初通', cost:120, req:[], level:36,
+    desc:'大斗师之前服用修为丹不再进入药力炼化（最多生效至斗师九星）' },
+  { id:'meridian2', name:'百脉贯通', cost:360, req:['meridian1'], level:63,
+    desc:'斗皇之前服用修为丹不再进入药力炼化（最多生效至斗王九星）' },
   { id:'wick1', name:'火种淬炼·一', cost:60,  req:[],        desc:'火种燃烧周期 +30%' },
   { id:'wick2', name:'火种淬炼·二', cost:240, req:['wick1'], desc:'火种燃烧周期 +50%' },
   { id:'wick3', name:'火种淬炼·三', cost:600, req:['wick2'], desc:'火种燃烧周期 +80%' },
@@ -1623,7 +1709,8 @@ const TREE = [
   { id:'event2',name:'机缘不断·二',  cost:560, req:['event1'],desc:'奇遇触发间隔再 -20%（合计约 -32%）' },
   { id:'mem1',  name:'轮回记忆·一',  cost:380, req:[],        desc:'轮回火晶 +35%' },
   { id:'mem2',  name:'轮回记忆·二',  cost:760, req:['mem1'],  desc:'轮回火晶再 +40%（两件合计 +75%）' },
-  { id:'timecry',name:'时空结晶',    cost:880, req:[],         desc:'轮回时补充一枚时空结晶（最多 1 枚），可在丹囊燃烧' },
+  { id:'timecry',name:'时空结晶',    cost:320, req:[],         desc:'轮回时补充一枚时空结晶（最多 1 枚），可在丹囊燃烧' },
+  { id:'timecry2',name:'时空延展',   cost:580, req:['timecry'], desc:'时空结晶持续时间 ×2（15 → 30 分钟）' },
   { id:'start1',name:'火种余烬',     cost:620, req:[],         desc:'转生可携带一种已收服异火' },
   { id:'ash1',  name:'不灭余烬',     cost:720, req:[],         desc:'灰烬惩罚由 -80% 降至 -50%' },
   { id:'fail1', name:'败而不馁·一',  cost:180, req:[],          desc:'战斗失败扣除的火种时间 -30%' },
@@ -1669,6 +1756,14 @@ const EVENT_DEX = [
   { id:'residual', name:'异火残焰', cond:'历练或采集时', desc:'岩缝中残留着一缕将熄的异火残焰。' },
   { id:'soulHunt', name:'魂殿追兵', cond:'侵蚀度较高且剧情推进后', desc:'魂殿追兵循着气息追来，避战还是迎战？' }
 ];
+const ACHIEVEMENTS = [
+  { id:'douhuang', name:'斗皇之姿', cond:'首次晋入斗皇境界' },
+  { id:'dousheng', name:'斗圣临世', cond:'首次晋入斗圣境界' },
+  { id:'lotus5', name:'火莲五杀', cond:'用佛怒火莲斩杀 5 名敌人（跨轮回累计）', goal:5 },
+  { id:'diyan', name:'万火归一', cond:'合成帝炎' },
+  { id:'daughter', name:'父女重逢', cond:'完成天墓之行后与萧潇相认' },
+  { id:'corruption5', name:'五蚀终章', cond:'在 5 档侵蚀下完成双帝之战' }
+];
 /* =========================================================
    核心
    ========================================================= */
@@ -1683,6 +1778,11 @@ function rnd(){ return Math.random(); }
 function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
 function pickOne(arr){ return arr[Math.floor(rnd() * arr.length)]; }
 function hasTree(id){ return !!S.tree[id]; }
+function noPillDebuff(){
+  if(hasTree('meridian2') && S.level < 54) return true;
+  if(hasTree('meridian1') && S.level < 27) return true;
+  return false;
+}
 function eventIntervalMult(){
   let m = 1;
   if(hasTree('event1')) m *= 0.85;
@@ -1837,7 +1937,7 @@ function defaultState(){
     control: 0,
     rebirthUnlocked: false,
     story: 0,
-    storyOrder: 3,
+    storyOrder: 4,
     ashStrikeUsed: false,
     storyCdMax: 0,
     storyCdFail: false,
@@ -1846,8 +1946,10 @@ function defaultState(){
     carry: null,
     carryOn: false,
     auto: { brk:true, pill:true, story:true, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
-    settings: { skipUnlockPopups:false },
+    settings: { skipUnlockPopups:false, ashDim:true },
     tutorialDone: false,
+    achievements: {},
+    achievementProgress: {},
     seenUnlocks: {},
     seenEvents: {},
     breakBuff: 0,
@@ -1961,6 +2063,7 @@ function bonuses(){
 
 function power(){ return powerBase(S.level) * bonuses().power; }
 function timeGainMult(){ return S.timeBuff > 0 ? 3 : 1; }
+function timeCrystalDuration(){ return hasTree('timecry2') ? 1800 : 900; }
 function injuredMult(){ return S.injured > 0 ? 0.5 : 1; }
 function checkXunerDiyin(){
   if(!S) return;
@@ -2196,6 +2299,7 @@ function tryBreak(auto){
     S.tm.brk = 0.8;
     log('冲关成功，晋入「' + LEVELS[S.level].name + '」。', 'log-good');
     if(S.level > (S.stats.maxLevel || 2)) S.stats.maxLevel = S.level;
+    checkLevelAchievements();
     if(S.level >= MAX_LEVEL) log('斗气大陆之巅，斗帝之境，今日终至。', 'log-good');
     return { ok:true, msg:'突破成功' };
   } else {
@@ -2515,10 +2619,11 @@ function craft(id, auto, frugal){
     const yieldGain = alchemyYieldPct() > 0 ? reqNeed(S.level) * alchemyYieldPct() : 0;
     if(yieldGain > 0) S.qi += yieldGain;
     if(p.type === 'qi'){
-      const debuffed = S.pillDebuff > 0;
+      const noDebuff = noPillDebuff();
+      const debuffed = S.pillDebuff > 0 && !noDebuff;
       gain = breakNeed(S.level) * p.pct * (overCap ? 0.2 : 1) * (debuffed ? 0.5 : 1) * fireCultPillMult() * (frugal ? 1 : alchemyHerbEffectMult());
       S.qi += gain;
-      S.pillDebuff = 90;
+      S.pillDebuff = noDebuff ? 0 : 90;
       S.stats.pills++;
       log('丹成即服，「' + p.name + '」' + method + '药力化开，斗气 +' + fmt(gain) + (overCap ? '（超出适用境界，只余两成药力）' : '') + (debuffed ? '（药力虚浮，效果减半）' : '') + '。', 'log-good');
     } else {
@@ -2570,10 +2675,11 @@ function useQiPill(id){
   if(!p || p.type !== 'qi' || !(S.pills[id] > 0)) return { ok:false, msg:'无此丹药' };
   S.pills[id]--;
   if(S.pills[id] <= 0) delete S.pills[id];
-  const debuffed = S.pillDebuff > 0;
+  const noDebuff = noPillDebuff();
+  const debuffed = S.pillDebuff > 0 && !noDebuff;
   const gain = breakNeed(S.level) * p.pct * (debuffed ? 0.5 : 1) * fireCultPillMult() * alchemyHerbEffectMult();
   S.qi += gain;
-  S.pillDebuff = 90;
+  S.pillDebuff = noDebuff ? 0 : 90;
   log('服下「' + p.name + '」，斗气 +' + fmt(gain) + (debuffed ? '（药力虚浮，效果减半）' : '') + '。', 'log-good');
   return { ok:true, gain:gain };
 }
@@ -2582,8 +2688,9 @@ function useTimeCrystal(){
   if(!(S.timeCrystal > 0)) return { ok:false, msg:'没有时空结晶' };
   if(S.timeBuff > 0) return { ok:false, msg:'时空结晶已在燃烧' };
   S.timeCrystal = 0;
-  S.timeBuff = 900;
-  log('燃烧时空结晶：接下来 15 分钟，火种流逝 ×2，斗气 / 药材 / 魔核获取 ×3，奇遇频率 ×3。', 'log-good');
+  const duration = timeCrystalDuration();
+  S.timeBuff = duration;
+  log('燃烧时空结晶：接下来 ' + (duration / 60) + ' 分钟，火种流逝 ×2，斗气 / 药材 / 魔核获取 ×3，奇遇频率 ×3。', 'log-good');
   save();
   return { ok:true };
 }
@@ -2628,6 +2735,7 @@ function resolveStoryWin(n){
   const prevStory = S.story;
   S.story++;
   if(S.stats) S.stats.storyMax = Math.max(S.stats.storyMax || 0, S.story);
+  if(n.title === '双帝之战' && (S.corruption || 0) === 5) unlockAchievement('corruption5');
   log('【' + n.title + '】' + n.win, 'log-good');
   checkModeUnlocks(prevStory);
   if(prevStory < mapStoryOrder2(5) && S.story >= mapStoryOrder2(5) && !(S.seenUnlocks && S.seenUnlocks.wildFlame)){
@@ -2649,6 +2757,19 @@ function resolveStoryWin(n){
     showModal('黑皇商会', '<p>拍卖会散场，黑皇商会的管事递来一枚黑金令。</p><div class="quote">“拍卖只是一锤子买卖。丹药、材料、消息，黑皇商会都能替你流通。”</div><p class="hint">已解锁「黑皇商会」。</p>', [{ t:'收下令牌' }]);
     updateMerchantTab();
     ensureMerchantState();
+  }
+  if(n.title === '天墓 · 萧玄' && !(S.seenUnlocks && S.seenUnlocks.daughterReunion)){
+    if(!S.seenUnlocks) S.seenUnlocks = {};
+    S.seenUnlocks.daughterReunion = true;
+    addPartner('xiaoxiao');
+    unlockAchievement('daughter');
+    log('天墓归来，彩鳞带着萧潇出现在天府联盟。小女孩仰头看了你很久，终于叫了一声“爹爹”。', 'log-love');
+    showModal('父女相认',
+      '<p>天墓之行归来，天府联盟的庆功宴还未散。彩鳞牵着一个粉雕玉琢的小女孩站在门口，女孩的眉眼像她，也像你。</p>' +
+      '<p>“她叫萧潇。”彩鳞的声音很轻，“这些年，她一直问我，爹爹什么时候回来。”</p>' +
+      '<p>小女孩仰头看了你很久，才试探着叫了一声：“爹爹？”</p>' +
+      '<div class="quote">“我回来了。”</div>',
+      [{ t:'抱抱她' }]);
   }
   if(n.title === '双帝之战'){
     const oldTier = LEVELS[S.level].tier;
@@ -2699,6 +2820,11 @@ function challenge(lastStand){
   S.stats.battles++;
   if(firstStory) return resolveStoryWin(n);
   if(nodeHasEnemy(n)){
+    if(canSkipStoryBattle(n, P, E)){
+      log('战力碾压，直接跳过「' + n.title + '」的回合战斗。', 'log-good');
+      resolveStoryWin(n);
+      return { ok:true, skipped:true };
+    }
     startBattle(n, P, E);
     return { ok:true, started:true };
   }
@@ -2719,11 +2845,30 @@ const ENEMY_STORY_TITLES = [
   '魂殿救师',
   '花宗',
   '空间交易会',
+  '葬天山脉',
   '天府联盟',
   '妖火空间',
   '双帝之战'
 ];
 function nodeHasEnemy(n){ return !!n && ENEMY_STORY_TITLES.indexOf(n.title) >= 0; }
+function turnBattleNumber(n){
+  const idx = NODES.indexOf(n);
+  let count = 0;
+  for(let i = 0; i <= idx; i++){
+    if(ENEMY_STORY_TITLES.indexOf(NODES[i].title) >= 0) count++;
+  }
+  return count;
+}
+function storySkipLimit(){
+  if(hasTree('skip2')) return 7;
+  if(hasTree('skip1')) return 3;
+  return 0;
+}
+function canSkipStoryBattle(n, P, E){
+  const limit = storySkipLimit();
+  return limit > 0 && !!n && nodeHasEnemy(n) && phase() !== 'ash' &&
+    turnBattleNumber(n) <= limit && P >= E;
+}
 function storyEnemyName(n){
   if(!n) return '敌人';
   if(n.title === '魔兽山脉') return '狼群';
@@ -2737,6 +2882,7 @@ function storyEnemyName(n){
   if(n.title === '魂殿救师') return '魂殿天尊';
   if(n.title === '花宗') return '花宗大长老';
   if(n.title === '空间交易会') return '魂殿截杀者';
+  if(n.title === '葬天山脉') return '魂元天';
   if(n.title === '天府联盟') return '慕骨老人';
   if(n.title === '妖火空间') return '净莲妖火';
   if(n.title === '双帝之战') return '魂天帝';
@@ -3095,7 +3241,11 @@ function battleApplyAction(b, key){
       const pline = partnerCritLine();
       if(pline) b.log.push(pline);
     }
-    if(e.hp <= 0){ battleEnd(b, true, '敌人倒下了，你赢下此战。'); return b; }
+    if(e.hp <= 0){
+      if(skillId === 'lotus') recordLotusKill();
+      battleEnd(b, true, '敌人倒下了，你赢下此战。');
+      return b;
+    }
   }
 
   // 敌人行动
@@ -3357,6 +3507,7 @@ function addPartner(id){
   if(S.seenPartners.indexOf(id) < 0){
     S.seenPartners.push(id);
     log('伙伴加入：' + p.name + '（' + p.title + '）。', 'log-good');
+    if(id === 'xiaoxiao') unlockAchievement('daughter');
     if(p.romance && !S.affinity[id]) S.affinity[id] = 0;
     if(typeof onPartnerJoin === 'function') onPartnerJoin(p);
   }
@@ -3368,9 +3519,8 @@ function giftCost(id){
   return Math.max(1, Math.round(GIFT_HERB_BASE * factor));
 }
 function giftCoreCost(id){
-  const a = S.affinity[id] || 0;
-  const factor = Math.pow(1.12, a - 80);
-  return Math.max(20, Math.round(70 * coreBase(S.level) * factor));
+  // 与药材同一条好感曲线，魔核约占药材成本的 6%，避免前期长期卡在 20 魔核
+  return Math.max(1, Math.round(giftCost(id) * 0.06));
 }
 function giftBreakPill(){
   const list = PILLS.filter(function(p){ return p.type === 'break' && (S.pills[p.id] || 0) > 0; });
@@ -4041,6 +4191,8 @@ function herbGuardChoose(choice, timedOut){
 function buyTree(id){
   const t = TREE_BY_ID[id];
   if(!t || hasTree(id)) return { ok:false, msg:'已拥有' };
+  if(t.story && !storyEverDone(t.story)) return { ok:false, msg:'需先击败剧情「' + t.story + '」' };
+  if(t.level && maxLevelEver() < t.level) return { ok:false, msg:'需先达到' + LEVELS[t.level].name + '境界' };
   for(let i = 0; i < t.req.length; i++){
     if(!hasTree(t.req[i])) return { ok:false, msg:'前置未点亮' };
   }
@@ -4182,6 +4334,7 @@ function fuseDiyan(){
   S.wick = Math.min(newMax, S.wick + (newMax - oldMax));
   S.wickMax = newMax;
   log('万火归位，二十二种异火尽数相融——帝炎，成了。', 'log-good');
+  unlockAchievement('diyan');
   save();
   return { ok:true };
 }
@@ -4338,7 +4491,7 @@ const SAVE_KEY_NAMES = [
   'soulHuntDefeated','flameMaxBonus','flameIntel','control','rebirthUnlocked','story','storyOrder',
   'ashStrikeUsed','storyCdMax','storyCdFail','tree','repeat','carry','carryOn','auto','settings',
   'tutorialDone','seenUnlocks','seenEvents','breakBuff','milestones','stats','tm','endSeen',
-  '_phaseSeen','_flamePity','lastSave',
+  '_phaseSeen','_flamePity','lastSave','achievements','achievementProgress','time',
   'playTime','runTime','kills','battles','wins','pills','rebirths','maxLevel','storyMax',
   'brk','craft','event','save','storyThreshold','craftId','priorityStory','storyPowerMode',
   'skipUnlockPopups','yield','core','herb','frugal','coreOn','herbOn','power','alchemy','pill',
@@ -4578,22 +4731,29 @@ function loadGame(){
     if(!o.stats) o.stats = d.stats;
     for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
     o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
-    if(storyOrder === 2){
-      o.story = mapStoryOrder2(o.story);
-      o.stats.storyMax = mapStoryOrder2(o.stats.storyMax);
-      o.storyOrder = 3;
+    if(storyOrder === 3){
+      o.story = mapStoryOrder3(o.story);
+      o.stats.storyMax = mapStoryOrder3(o.stats.storyMax);
+      o.storyOrder = 4;
+    } else if(storyOrder === 2){
+      o.story = mapStoryOrder3(mapStoryOrder2(o.story));
+      o.stats.storyMax = mapStoryOrder3(mapStoryOrder2(o.stats.storyMax));
+      o.storyOrder = 4;
     } else if(storyOrder === undefined){
       o.story = mapStoryIndex(o.story);
       o.stats.storyMax = mapStoryIndex(o.stats.storyMax);
-      o.storyOrder = 3;
+      o.storyOrder = 4;
     }
     if(!o.tm) o.tm = d.tm;
     if(!o.repeat) o.repeat = d.repeat;
     if(!o.auto) o.auto = d.auto;
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
+    if(o.settings.ashDim === undefined) o.settings.ashDim = true;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
+    if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
+    if(!o.achievementProgress || typeof o.achievementProgress !== 'object') o.achievementProgress = {};
     if(o.auto.priorityStory === undefined) o.auto.priorityStory = true;
     if(o.auto.storyPowerMode){
       o.auto.storyThreshold = 60;
@@ -5072,7 +5232,7 @@ function renderHUD(){
   if($('emberFill')) $('emberFill').style.width = (S.wickMax > 0 ? S.wick / S.wickMax * 100 : 0).toFixed(2) + '%';
   if($('emberBar')) $('emberBar').className = 'ember-bar' + (ph === 'red' ? ' red' : (ph === 'ash' ? ' ash' : ''));
   document.body.classList.toggle('red-phase', ph === 'red');
-  document.body.classList.toggle('ash-phase', ph === 'ash');
+  document.body.classList.toggle('ash-phase', ph === 'ash' && S.settings.ashDim !== false);
   if($('emberPhase')) $('emberPhase').textContent = phaseName();
   if($('emberTime')){
     if(ph === 'ash'){
@@ -5129,13 +5289,15 @@ function renderStoryCard(force){
   const w = nodeWin(n);
   const ash = phase() === 'ash';
   const ashSpent = ash && S.ashStrikeUsed;
+  const skipReady = !ash && info.ok && canSkipStoryBattle(n, power(), E);
   const needKey = n.key && !(S.pills[n.key] > 0) && !ashSpent;
-  const btnLabel = ash ? (ashSpent ? '火种已灭' : '燃命一击') : '挑战';
+  const btnLabel = ash ? (ashSpent ? '火种已灭' : '燃命一击') : (skipReady ? '跳过战斗' : '挑战');
   const badgeText = ashSpent ? '火种已灭' : (info.ok ? '可挑战' : '条件不足');
   const badgeOn = info.ok && !ashSpent;
   const whyText = ashSpent
     ? '火种已灭，本世无法再战。点击查看轮回。'
-    : (ash && info.ok ? '燃命一击：无论成败，本世都将无法再继续剧情挑战。' : (info.ok ? '' : info.why));
+    : (ash && info.ok ? '燃命一击：无论成败，本世都将无法再继续剧情挑战。'
+      : (skipReady ? '战力达标，将按正常胜利结算。' : (info.ok ? '' : info.why)));
   body.innerHTML =
     '<div class="story-head">' +
       '<div><div class="story-name">' + esc(n.title) + (n.side ? '<span class="badge" style="margin-left:6px">支线</span>' : '') + '</div><div class="tiny">' + esc(n.place) + '</div></div>' +
@@ -5169,10 +5331,11 @@ function updateStoryDynamic(){
   if(winEl){ winEl.textContent = nodeHasEnemy(n) ? battleOddsLabel(w) : pct(w); winEl.className = w >= 0.7 ? 'ok' : (w < 0.35 ? 'no' : ''); }
   const ash = phase() === 'ash';
   const ashSpent = ash && S.ashStrikeUsed;
+  const skipReady = !ash && info.ok && canSkipStoryBattle(n, power(), nodeEnemy(n));
   const btn = $('challengeBtn');
   if(btn){
     btn.disabled = ashSpent ? false : !info.ok;
-    btn.textContent = ash ? (ashSpent ? '火种已灭' : '燃命一击') : '挑战';
+    btn.textContent = ash ? (ashSpent ? '火种已灭' : '燃命一击') : (skipReady ? '跳过战斗' : '挑战');
   }
   const why = $('storyWhy');
   if(why){
@@ -5181,6 +5344,8 @@ function updateStoryDynamic(){
       text = '火种已灭，本世无法再战。点击查看轮回。';
     } else if(ash && info.ok){
       text = '燃命一击：无论成败，本世都将无法再继续剧情挑战。';
+    } else if(skipReady){
+      text = '战力达标，将按正常胜利结算。';
     } else if(!info.ok){
       text = info.why;
     }
@@ -5524,8 +5689,9 @@ function renderTimeCrystal(force){
   const active = S.timeBuff > 0;
   const owned = (S.timeCrystal || 0) > 0;
   const unlocked = hasTree('timecry');
+  const durationMin = Math.round(timeCrystalDuration() / 60);
   if(!active && !owned && !unlocked){ box.innerHTML = ''; return; }
-  const sig = (active ? Math.ceil(S.timeBuff) : 0) + '|' + (owned ? 1 : 0) + '|' + (unlocked ? 1 : 0);
+  const sig = (active ? Math.ceil(S.timeBuff) : 0) + '|' + (owned ? 1 : 0) + '|' + (unlocked ? 1 : 0) + '|' + durationMin;
   if(!changed('timeCrystalUI', sig) && !force) return;
   if(active){
     box.innerHTML = '<div class="time-crystal active"><div class="tc-orb"></div><div class="grow">' +
@@ -5535,7 +5701,7 @@ function renderTimeCrystal(force){
   } else if(owned){
     box.innerHTML = '<div class="time-crystal"><div class="tc-orb"></div><div class="grow">' +
       '<div class="nm">时空结晶 <span>×1</span></div>' +
-      '<div class="eff">燃烧后 15 分钟：火种流逝 ×2；斗气 / 药材 / 魔核获取 ×3；奇遇频率 ×3（丹药斗气不受影响）</div>' +
+      '<div class="eff">燃烧后 ' + durationMin + ' 分钟：火种流逝 ×2；斗气 / 药材 / 魔核获取 ×3；奇遇频率 ×3（丹药斗气不受影响）</div>' +
       '</div><button class="btn sm" data-act="usetc">燃烧</button></div>';
   } else {
     box.innerHTML = '<div class="time-crystal"><div class="tc-orb"></div><div class="grow">' +
@@ -5713,6 +5879,26 @@ function renderEventDex(){
     '</div>';
   }).join('');
 }
+function renderAchievements(force){
+  const box = $('achievementList');
+  if(!box) return;
+  const sig = JSON.stringify(S.achievements || {}) + '|' + JSON.stringify(S.achievementProgress || {});
+  if(!changed('achievements', sig) && !force) return;
+  const unlocked = S.achievements || {};
+  const progress = S.achievementProgress || {};
+  if($('achCount')) $('achCount').textContent = Object.keys(unlocked).length + ' / ' + ACHIEVEMENTS.length;
+  box.innerHTML = ACHIEVEMENTS.map(function(a){
+    const rec = unlocked[a.id];
+    const current = Math.min(a.goal || 0, progress[a.id] || 0);
+    return '<div class="ach-card ' + (rec ? '' : 'locked') + '">' +
+      '<div class="an">' + esc(a.name) + '</div>' +
+      '<div class="ac">' + esc(a.cond) + '</div>' +
+      (rec
+        ? '<div class="ar">第 ' + (rec.cycle || 1) + ' 世 · 累计 ' + fmtTime(rec.time || 0) + '</div>'
+        : (a.goal ? '<div class="ar">进度 ' + current + ' / ' + a.goal + '</div>' : '')) +
+    '</div>';
+  }).join('');
+}
 function renderStoryDex(force){
   if(!changed('storyDex', S.story) && !force) return;
   const box = $('storyDex');
@@ -5800,6 +5986,7 @@ function showSettings(){
     '<div class="settings-block">' +
       '<div class="settings-h">界面</div>' +
       '<div class="switch"><div class="lb">跳过已看过的功能解锁弹窗<small>仅跳过曾经看过的解锁介绍</small></div><div class="sw" id="swSkipUnlock"></div></div>' +
+      '<div class="switch"><div class="lb">灰烬阶段背景变暗<small>关闭后灰烬阶段保持正常亮度</small></div><div class="sw" id="swAshDim"></div></div>' +
     '</div>' +
     '<div class="settings-block">' +
       '<div class="settings-h">图鉴收集</div>' +
@@ -5831,6 +6018,23 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.4</span><span class="cl-date">2026-11-08</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>好感送礼的魔核需求改为按药材成本比例计算</li>' +
+            '<li>移除固定 20 魔核的低价平台期，魔核需求随好感更早上升</li>' +
+            '<li>设置新增「灰烬阶段背景变暗」开关，关闭后立即恢复亮度</li>' +
+            '<li>青莲地心火剧情丹更名为「血莲丹」</li>' +
+            '<li>火晶商店新增「以战养战」「摧枯拉朽」：战力达标时分别跳过每世前 3 / 7 场回合战斗</li>' +
+            '<li>跳过战斗按正常胜利结算，仍需满足原本的挑战条件</li>' +
+            '<li>新增火晶升级「经脉初通」「百脉贯通」：低境界服用修为丹不再进入药力炼化</li>' +
+            '<li>时空结晶升级价格调整为 320 火晶，新增「时空延展」（580 火晶）使持续时间提升至 30 分钟</li>' +
+            '<li>时空结晶升级悬停可查看完整效果</li>' +
+            '<li>图鉴新增成就栏：6 个永久成就，记录解锁时的轮回与累计在线时间</li>' +
+            '<li>萧潇改为天墓之行后相认，新增父女相认短剧情弹窗</li>' +
+            '<li>新增回合剧情「葬天山脉」：天府联盟与魂族全面开战，迎战八星斗圣魂元天</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.3</span><span class="cl-date">2026-11-07</span></summary>' +
           '<ul class="cl-list">' +
             '<li>修复轮回结算中异火峰值数量显示错误</li>' +
@@ -5849,7 +6053,7 @@ function showSettings(){
             '<li>后续剧情顺延，系统与功能仍按原剧情节点解锁</li>' +
             '<li>剧情图鉴补齐新增章节</li>' +
             '<li>首次一周目新增三步新手引导</li>' +
-            '<li>青莲地心火新增 3 品剧情丹「青莲护心丹」</li>' +
+            '<li>青莲地心火新增 3 品剧情丹「血莲丹」</li>' +
             '<li>修为丹材料成本提高约 10%，效果保持不变</li>' +
             '<li>修为丹适用说明改为“某段位后药力降低”</li>' +
             '<li>修复修为丹实际增益远低于界面标注百分比的问题</li>' +
@@ -6016,6 +6220,16 @@ function showSettings(){
       toast(S.settings.skipUnlockPopups ? '已开启：跳过看过的解锁弹窗' : '已关闭：显示已看过的解锁弹窗');
     });
   }
+  syncSwitch('swAshDim', S.settings.ashDim !== false);
+  if($('swAshDim')){
+    $('swAshDim').addEventListener('click', function(){
+      S.settings.ashDim = !(S.settings.ashDim !== false);
+      save();
+      syncSwitch('swAshDim', S.settings.ashDim !== false);
+      document.body.classList.toggle('ash-phase', S.settings.ashDim !== false && phase() === 'ash');
+      toast(S.settings.ashDim !== false ? '已开启：灰烬阶段背景变暗' : '已关闭：灰烬阶段背景变暗');
+    });
+  }
 }
 async function handleSetting(act){
   if(act === 'save'){
@@ -6051,20 +6265,27 @@ async function handleSetting(act){
       if(!o.stats) o.stats = d.stats;
       for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
       o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
-      if(storyOrder === 2){
-        o.story = mapStoryOrder2(o.story);
-        o.stats.storyMax = mapStoryOrder2(o.stats.storyMax);
-        o.storyOrder = 3;
+      if(storyOrder === 3){
+        o.story = mapStoryOrder3(o.story);
+        o.stats.storyMax = mapStoryOrder3(o.stats.storyMax);
+        o.storyOrder = 4;
+      } else if(storyOrder === 2){
+        o.story = mapStoryOrder3(mapStoryOrder2(o.story));
+        o.stats.storyMax = mapStoryOrder3(mapStoryOrder2(o.stats.storyMax));
+        o.storyOrder = 4;
       } else if(storyOrder === undefined){
         o.story = mapStoryIndex(o.story);
         o.stats.storyMax = mapStoryIndex(o.stats.storyMax);
-        o.storyOrder = 3;
+        o.storyOrder = 4;
       }
       if(!o.auto) o.auto = d.auto;
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
+    if(o.settings.ashDim === undefined) o.settings.ashDim = true;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
+    if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
+    if(!o.achievementProgress || typeof o.achievementProgress !== 'object') o.achievementProgress = {};
       if(o.auto.priorityStory === undefined) o.auto.priorityStory = true;
       if(o.auto.storyPowerMode){
         o.auto.storyThreshold = 60;
@@ -6126,6 +6347,7 @@ async function handleSetting(act){
       if(!o.tm) o.tm = { brk:0, craft:0, story:0, event:15, save:0 };
       S = o;
       if(!modeUnlocked(S.mode)) S.mode = 'cultivate';
+      checkAllAchievements();
       save();
       lastT = performance.now();
       lastToastLevel = S.level;
@@ -6189,16 +6411,23 @@ function renderTree(force){
   if(!box) return;
   box.innerHTML = TREE.map(function(t){
     const owned = hasTree(t.id);
-    const locked = t.req.some(function(r){ return !hasTree(r); });
-    const tip = t.id === 'battlefire'
-      ? '<div class="node-tip"><b>引火</b>：不攻击，本场战斗所有伤害 ×1.3；使用后本场不再出现。<br><b>火铠</b>：不攻击，本场受到伤害 -10%，且不会被暴击；使用后本场不再出现。</div>'
-      : '';
+    const reqLocked = t.req.some(function(r){ return !hasTree(r); });
+    const storyLocked = t.story && !storyEverDone(t.story);
+    const levelLocked = t.level && maxLevelEver() < t.level;
+    const locked = reqLocked || storyLocked || levelLocked;
+    let tip = '';
+    if(t.id === 'battlefire'){
+      tip = '<div class="node-tip"><b>引火</b>：不攻击，本场战斗所有伤害 ×1.3；使用后本场不再出现。<br><b>火铠</b>：不攻击，本场受到伤害 -10%，且不会被暴击；使用后本场不再出现。</div>';
+    } else if(t.id === 'timecry' || t.id === 'timecry2'){
+      const mins = t.id === 'timecry2' ? 30 : Math.round(timeCrystalDuration() / 60);
+      tip = '<div class="node-tip"><b>时空结晶效果</b>：燃烧后持续 ' + mins + ' 分钟，火种流逝 ×2，斗气 / 药材 / 魔核获取 ×3，奇遇频率 ×3。<br>丹药提供的斗气不受影响。</div>';
+    }
     return '<div class="node ' + (owned ? 'owned' : '') + (locked && !owned ? ' locked' : '') + '">' +
       '<div class="nm">' + esc(t.name) + '</div>' +
       '<div class="ds">' + esc(t.desc) + '</div>' +
       '<div class="bottom">' +
         '<span class="cost">' + (owned ? '已点亮' : (t.cost + ' 火晶')) + '</span>' +
-        '<button class="btn sm ' + (owned ? 'ghost' : '') + '" data-tree="' + t.id + '" ' + (owned || locked ? 'disabled' : '') + '>' + (owned ? '✓' : (locked ? '前置' : '兑换')) + '</button>' +
+        '<button class="btn sm ' + (owned ? 'ghost' : '') + '" data-tree="' + t.id + '" ' + (owned || locked ? 'disabled' : '') + '>' + (owned ? '✓' : (locked ? (storyLocked ? '剧情' : (levelLocked ? '境界' : '前置')) : '兑换')) + '</button>' +
       '</div>' + tip +
     '</div>';
   }).join('');
@@ -6354,7 +6583,7 @@ const TAB_RENDER = {
     renderMerchant();
   },
   gallery: function(force){
-    renderPartners(force); renderDex(force); renderSkillDex(); renderEventDex(); renderStoryDex(force);
+    renderPartners(force); renderDex(force); renderSkillDex(); renderEventDex(); renderAchievements(force); renderStoryDex(force);
   },
   rebirth: function(force){
     renderRebirth(); renderTree(force); renderRepeats(force);
@@ -6417,7 +6646,7 @@ function updateAffordable(){
     const b = treeBtns[i];
     const t = TREE_BY_ID[b.dataset.tree];
     if(!t || hasTree(t.id)) continue;
-    const locked = t.req.some(function(r){ return !hasTree(r); });
+    const locked = t.req.some(function(r){ return !hasTree(r); }) || (t.story && !storyEverDone(t.story)) || (t.level && maxLevelEver() < t.level);
     b.disabled = locked || S.crystals < t.cost;
   }
   const repBtns = document.querySelectorAll('[data-repeat]');
@@ -6578,7 +6807,7 @@ function bindUI(){
       if(act === 'usetc'){
         const r = useTimeCrystal();
         if(!r.ok) toast(r.msg);
-        else toast('时空结晶已燃烧，15 分钟内收益与奇遇频率提升');
+        else toast('时空结晶已燃烧，' + Math.round(timeCrystalDuration() / 60) + ' 分钟内收益与奇遇频率提升');
         renderPillBag(true);
         renderHUD();
         save();
@@ -6927,6 +7156,7 @@ function boot(){
   S.wick = clamp(S.wick, 0, S.wickMax);
   S._phaseSeen = phase();
   lastToastLevel = S.level;
+  checkAllAchievements();
   bindUI();
   renderAll(true);
   switchTab('cultivate', true);
