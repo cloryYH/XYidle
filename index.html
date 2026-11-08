@@ -4457,9 +4457,11 @@ function setRegion(i){
 }
 
 /* ---------- 日志 ---------- */
+let logRevision = 0;
 function log(text, cls){
   S.log.push({ t: Math.floor(S.stats.runTime), text: text, cls: cls || '' });
   if(S.log.length > 80) S.log.shift();
+  logRevision++;
   if(typeof uiDirty !== 'undefined') uiDirty.log = true;
 }
 function addMilestone(type, text){
@@ -4922,7 +4924,8 @@ function tick(dt){
     S.tm[k] = Math.max(0, S.tm[k] - dt * speed);
   }
   if(S.pillDebuff > 0){
-    S.pillDebuff = Math.max(0, S.pillDebuff - dt * (S.mode === 'cultivate' ? 3 : 1));
+    const timeSpeed = timeBuffed ? 3 : 1;
+    S.pillDebuff = Math.max(0, S.pillDebuff - dt * (S.mode === 'cultivate' ? 3 : 1) * timeSpeed);
   }
   if(S.injured > 0){
     S.injured = Math.max(0, S.injured - dt);
@@ -5380,7 +5383,7 @@ function updateStoryDynamic(){
   }
 }
 function renderLog(force){
-  if(!changed('log', S.log.length + '|' + (S.log.length ? S.log[S.log.length - 1].text : '')) && !force) return;
+  if(!changed('log', S.log.length + '|' + (S.log.length ? S.log[S.log.length - 1].text : '') + '|' + logRevision) && !force) return;
   const box = $('logBox');
   if(!box) return;
   if(!S.log.length){ box.innerHTML = '<div class="empty">尚无际遇。静心修炼，故事自会开始。</div>'; return; }
