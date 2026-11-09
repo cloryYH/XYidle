@@ -923,8 +923,14 @@
               <div class="sw on" id="swBreak"></div>
             </div>
             <div class="switch">
-              <div class="lb">自动服用突破丹<small>成功率低于八成时自动服用一枚</small></div>
+              <div class="lb">自动服用突破丹<small>成功率低于设定值时自动服用一枚</small></div>
               <div class="sw on" id="swPill"></div>
+            </div>
+            <div class="auto-threshold">
+              <span>自动服丹阈值</span>
+              <input type="number" id="pillThreshold" min="1" max="100" step="1" value="80" inputmode="numeric">
+              <span>%</span>
+              <span class="tiny">1–100，默认 80%</span>
             </div>
             <div class="switch">
               <div class="lb">自动挑战剧情<small>胜率达到设定值时自动出手；仅对无回合战斗的剧情节点生效</small></div>
@@ -1192,7 +1198,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.5';
+const GAME_VERSION = 'v0.2.6';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1257,6 +1263,7 @@ const FLAMES = [
   { id:'jiuyoufeng', rank:10, star:4, name:'九幽风炎', color:'#3d3d4d', power:1.18, qi:0.28, herb:0.05, wick:0.04, story:-2,
     desc:'生于极阴深渊，风声入耳，可乱人心神。' },
   { id:'guling', rank:11, star:4, name:'骨灵冷火', color:'#e6f2f8', power:1.05, qi:0.26, herb:0.06, wick:0.04, story:17,
+    specialName:'森白传承', specialDesc:'持有本源时，修为丹效果 +10%，丹成气生效果 +50%。',
     desc:'极寒与极热相生。百年日月交替，方得一遇。' },
   { id:'jiulong', rank:12, star:3, name:'九龙雷罡火', color:'#b9c4d0', power:0.95, qi:0.24, herb:0.05, wick:0.04, story:-2,
     desc:'银色火焰，九条雷龙游走其间，龙威震魂。' },
@@ -1274,7 +1281,7 @@ const FLAMES = [
   { id:'fengnu', rank:18, star:3, name:'风怒龙炎', color:'#c9a227', power:0.52, qi:0.15, herb:0.05, wick:0.03, story:-2,
     desc:'生于沙漠龙卷风眼，风火相济，高达数百米。' },
   { id:'qinglian', rank:19, star:3, name:'青莲地心火', color:'#2fc7b0', power:0.46, qi:0.22, herb:0.12, wick:0.04, story:4,
-    specialName:'莲心淬炼', specialDesc:'持有本源时，炼制剧情丹与突破丹的药材消耗 -20%。',
+    specialName:'莲心淬炼', specialDesc:'持有本源时，炼制剧情丹与突破丹的药材、魔核消耗 -20%。',
     desc:'地心熔岩千年成莲，莲心一簇青火，可引火山喷发。' },
   { id:'youming', rank:20, star:2, name:'幽冥毒火', color:'#6fbf3f', power:0.42, qi:0.14, herb:0.08, wick:0.025, story:-2,
     desc:'毒泽瘴气千万年熏养，色绿如鬼火，沾之即中毒。' },
@@ -1680,9 +1687,9 @@ function checkAllAchievements(){
 const PILLS = [
   { id:'ninghuo', name:'凝火丹', tier:1, type:'key', pct:0,
     mats:'火属性药草、一阶火系魔核', desc:'一品丹药，炼药师大会的入门考核。' },
-  { id:'zhuji', name:'筑基灵液', tier:2, type:'qi', pct:0.14, costPct:0.238, maxLevel:26,
+  { id:'zhuji', name:'筑基灵液', tier:2, type:'qi', pct:0.14, flatQi:100, costPct:0.238, maxLevel:26,
     mats:'紫叶兰草、洗骨花、一阶木系魔核', desc:'滴入清水浸泡，化斗之气为斗气。' },
-  { id:'juqi', name:'聚气散', tier:4, type:'qi', pct:0.18, costPct:0.449, maxLevel:44,
+  { id:'juqi', name:'聚气散', tier:4, type:'qi', pct:0.18, flatQi:3000, costPct:0.449, maxLevel:44,
     mats:'墨叶莲、蛇涎果、聚灵草、二阶水系魔核', desc:'九段斗之气可凝斗之气旋。' },
   { id:'huangji', name:'皇极丹', tier:6, type:'qi', pct:0.26, costPct:0.766, maxLevel:71,
     mats:'血蟒枝、皇极草、六阶火系魔核', desc:'斗皇之丹，药力霸道，可省数年苦修。' },
@@ -1786,6 +1793,8 @@ const OMENS = [
 const EVENT_DEX = [
   { id:'herb', name:'偶入药圃', cond:'修炼、历练或采集时', desc:'山间偶遇一片药圃，采得一批药材。' },
   { id:'core', name:'山野猎获', cond:'历练或采集时', desc:'猎杀低阶魔兽，剖取其魔核。' },
+  { id:'coreMid', name:'中阶魔兽', cond:'大斗师之后，挂机时', desc:'皮糙肉厚的中阶魔兽结群袭来，比低阶难缠得多。' },
+  { id:'coreHigh', name:'高阶魔兽', cond:'斗皇之后，挂机时', desc:'山脊上的高阶魔兽威压惊人，鳞甲寻常掌风难破。' },
   { id:'qi', name:'山巅悟气', cond:'修炼、历练或采集时', desc:'观云听风，忽然有所领悟。' },
   { id:'alchemy', name:'丹道残篇', cond:'炼药等级尚未圆满时', desc:'拾得残缺丹方，增进丹道熟练。' },
   { id:'affinity', name:'红颜闲谈', cond:'有伙伴同行时', desc:'与同行之人闲谈，情意渐浓。' },
@@ -1907,8 +1916,8 @@ function stdHerbRate(L){ return herbBase(L) * 1.8 * BASE_ADV_FACTOR; }
 function stdCoreRate(L){ return coreBase(L) * 1.5 * BASE_ADV_FACTOR; }
 function cultBase(L){ return reqCultBase(L) / levelTime(L); }
 function powerBase(L){ return 10 * Math.pow(1.30, L); }
-function herbBase(L){ return 0.35 + 0.15 * Math.pow(1.13, L); }
-function coreBase(L){ return 0.01 + 0.005 * Math.pow(1.13, L); }
+function herbBase(L){ return 0.35 + 0.15 * Math.pow(1.11, L); }
+function coreBase(L){ return 0.01 + 0.005 * Math.pow(1.11, L); }
 function corruptionEnemyMult(){ return 1 + 0.20 * clamp(S.corruption || 0, 0, 5); }
 function nextCorruptionEnemyMult(){ return 1 + 0.20 * clamp(S.nextCorruption || 1, 1, 5); }
 function enemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMult(); }
@@ -1999,7 +2008,7 @@ function defaultState(){
     repeat: { rqi:0, rpow:0, rherb:0, rwick:0, rcry:0 },
     carry: null,
     carryOn: false,
-    auto: { brk:true, pill:true, story:true, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
+    auto: { brk:true, pill:true, pillThreshold:80, story:true, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
     settings: { skipUnlockPopups:false, ashDim:true },
     tutorialDone: false,
     achievements: {},
@@ -2210,7 +2219,7 @@ function bestRegion(){
     if(w > bestW){ bestW = w; fallback = i; }
     if(w < 0.42) continue;
     const adv = clamp(Math.pow(power() / E, 0.35), 0.4, 3);
-    const score = (1 + 1.4 * w * adv) * Math.pow(1.13, r.lvl);
+    const score = (1 + 1.4 * w * adv) * Math.pow(1.11, r.lvl);
     if(score > bestScore){ bestScore = score; best = i; }
   }
   return bestScore >= 0 ? best : fallback;
@@ -2316,7 +2325,7 @@ function upgradeFireCult(id){
 }
 function fireCultPowMult(){ return 1 + 0.03 * fireCultLevel('power'); }
 function fireCultAlchemyBonus(){ return 0.012 * fireCultLevel('alchemy'); }
-function fireCultPillMult(){ return 1 + 0.02 * fireCultLevel('pill'); }
+function fireCultPillMult(){ return (1 + 0.02 * fireCultLevel('pill')) * (hasOriginFlame('guling') ? 1.1 : 1); }
 function fireCultSeclusionMult(){ return 1 + 0.03 * fireCultLevel('seclusion'); }
 function fireCultBreakBonus(){ return 0.005 * fireCultLevel('seclusion'); }
 function lotusProc(){
@@ -2374,7 +2383,8 @@ function tryBreak(auto){
   }
   if(S.qi < breakNeed(S.level)) return { ok:false, msg:'斗气不足' };
   if(S.tm.brk > 0) return { ok:false, msg:'调息中' };
-  if(auto && S.auto.pill && S.breakBuff < 0.05 && breakChance() < 0.8){
+  const pillThreshold = clamp(S.auto.pillThreshold === undefined ? 80 : S.auto.pillThreshold, 1, 100);
+  if(auto && S.auto.pill && S.breakBuff < 0.05 && breakChance() * 100 < pillThreshold){
     const bp = bestBreakPill();
     if(bp){
       S.pills[bp.id]--;
@@ -2428,7 +2438,7 @@ function alchLevelFor(exp){
 function alchRankName(){
   return ['','一品','二品','三品','四品','五品','六品','七品','八品','九品'][S.alchemyLevel] + '炼药师';
 }
-function pillHerbDiscount(p){
+function pillMaterialDiscount(p){
   return (p && (p.type === 'break' || p.type === 'key') && hasOriginFlame('qinglian')) ? 0.8 : 1;
 }
 function pillBaseCost(p){
@@ -2445,9 +2455,10 @@ function pillBaseCost(p){
       core: p.id === 'zhuji' ? 0 : Math.max(1, Math.ceil(0.175 * costPct * lt * cb))
     };
   } else if(p.type === 'break'){
+    const priceL = (REGIONS[bestGatherRegion()] || REGIONS[0]).lvl;
     cost = {
-      herb: Math.max(1, Math.round(30 * hb)),
-      core: Math.max(1, Math.ceil(10 * cb))
+      herb: Math.max(1, Math.round(30 * stdHerbRate(priceL))),
+      core: Math.max(1, Math.ceil(10 * stdCoreRate(priceL)))
     };
   } else {
     // 剧情丹：按“对应剧情节点的境界”固定定价，不随当前收益浮动
@@ -2461,7 +2472,9 @@ function pillBaseCost(p){
     };
   }
   if(p.type === 'break' || p.type === 'key'){
-    cost.herb = Math.max(1, Math.round(cost.herb * pillHerbDiscount(p)));
+    const disc = pillMaterialDiscount(p);
+    cost.herb = Math.max(1, Math.round(cost.herb * disc));
+    cost.core = Math.max(0, Math.round(cost.core * disc));
   }
   return cost;
 }
@@ -2474,8 +2487,11 @@ function pillCost(p){
 }
 function pillCostFrugal(p){
   const base = pillBaseCost(p);
+  let herb = base.herb * 0.60;
+  const au = S.alchemyUpgrade || {};
+  if(au.herbOn && au.herb > 0) herb *= (1 + alchemyExtraHerbPct());
   return {
-    herb: Math.max(1, Math.round(base.herb * 0.60)),
+    herb: Math.max(1, Math.round(herb)),
     core: Math.max(0, Math.round(base.core * 0.60))
   };
 }
@@ -2483,7 +2499,7 @@ const ALCH_UPGRADE_DEFS = {
   yield: { name:'丹成气生', max:5, qiBase:50000, qiGrowth:2.00, herbBase:400, herbGrowth:1.80, eff:'成功炼丹时获得当前境界所需斗气' },
   core:  { name:'魔核添薪', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'额外消耗魔核，提高炼丹成功率' },
   herb:  { name:'药材凝效', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'额外消耗药材，提高丹药药效' },
-  frugal:{ name:'减料成丹', max:1, qiBase:50000, qiGrowth:1.00, herbBase:0, herbGrowth:1.00, eff:'解锁减料炼丹：六成材料，成丹率减半；不与添薪、凝效叠加，委托不可用' }
+  frugal:{ name:'减料成丹', max:1, qiBase:50000, qiGrowth:1.00, herbBase:0, herbGrowth:1.00, eff:'解锁减料炼丹：六成材料，成丹率减半；不与添薪叠加，不影响药效，委托不可用' }
 };
 function alchUpgradeLevel(id){
   return (S.alchemyUpgrade && S.alchemyUpgrade[id]) | 0;
@@ -2511,7 +2527,7 @@ function upgradeAlchemyUpgrade(id){
   save();
   return { ok:true, level:lv + 1 };
 }
-function alchemyYieldPct(){ const lv = alchUpgradeLevel('yield'); return lv > 0 ? 0.01 + 0.003 * lv : 0; }
+function alchemyYieldPct(){ const lv = alchUpgradeLevel('yield'); return (lv > 0 ? 0.01 + 0.003 * lv : 0) * (hasOriginFlame('guling') ? 1.5 : 1); }
 function alchemyExtraCorePct(){ const lv = alchUpgradeLevel('core'); return lv === 1 ? 0.30 : (lv >= 2 ? 0.50 : 0); }
 function alchemyExtraHerbPct(){ const lv = alchUpgradeLevel('herb'); return lv === 1 ? 0.30 : (lv >= 2 ? 0.50 : 0); }
 function alchemySuccessBonus(p){ if(p && p.id === 'zhuji') return 0; return (S.alchemyUpgrade && S.alchemyUpgrade.coreOn) ? (alchUpgradeLevel('core') === 1 ? 0.03 : (alchUpgradeLevel('core') >= 2 ? 0.05 : 0)) : 0; }
@@ -2725,7 +2741,9 @@ function craft(id, auto, frugal){
     if(p.type === 'qi'){
       const noDebuff = noPillDebuff();
       const debuffed = S.pillDebuff > 0 && !noDebuff;
-      gain = breakNeed(S.level) * p.pct * (overCap ? 0.2 : 1) * (debuffed ? 0.5 : 1) * fireCultPillMult() * (frugal ? 1 : alchemyHerbEffectMult());
+      const pillMult = (overCap ? 0.2 : 1) * (debuffed ? 0.5 : 1) * fireCultPillMult() * alchemyHerbEffectMult();
+      const flatMult = (overCap ? 0.2 : 1) * (debuffed ? 0.5 : 1) * fireCultPillMult() * alchemyHerbEffectMult();
+      gain = breakNeed(S.level) * p.pct * pillMult + (p.flatQi || 0) * flatMult;
       S.qi += gain;
       S.pillDebuff = noDebuff ? 0 : 90;
       S.stats.pills++;
@@ -2781,7 +2799,8 @@ function useQiPill(id){
   if(S.pills[id] <= 0) delete S.pills[id];
   const noDebuff = noPillDebuff();
   const debuffed = S.pillDebuff > 0 && !noDebuff;
-  const gain = breakNeed(S.level) * p.pct * (debuffed ? 0.5 : 1) * fireCultPillMult() * alchemyHerbEffectMult();
+  const pillMult = (debuffed ? 0.5 : 1) * fireCultPillMult() * alchemyHerbEffectMult();
+  const gain = breakNeed(S.level) * p.pct * pillMult + (p.flatQi || 0) * pillMult;
   S.qi += gain;
   S.pillDebuff = noDebuff ? 0 : 90;
   log('服下「' + p.name + '」，斗气 +' + fmt(gain) + (debuffed ? '（药力虚浮，效果减半）' : '') + '。', 'log-good');
@@ -2818,7 +2837,7 @@ function resolveStoryWin(n){
     qGain = reqCultBase(n.req) * n.reward.qi * 0.28 * 0.6 * rw * gm;
     S.qi += qGain;
   }
-  hGain = 25 * Math.pow(1.13, n.lvl) * n.reward.herb * rw * gm;
+  hGain = 25 * Math.pow(1.11, n.lvl) * n.reward.herb * rw * gm;
   cGain = (2 + 0.5 * n.lvl) * n.reward.core * rw * gm;
   S.herbs += hGain;
   S.cores += cGain;
@@ -2834,7 +2853,10 @@ function resolveStoryWin(n){
   (n.partners || []).forEach(function(pid){ addPartner(pid); });
   if(n.flame) addFlame(n.flame);
   if(n.region >= 0 && (n.region === S.region || regionRunFactor(n.region) >= regionRunFactor(S.region) * 0.8)){
-    S.region = n.region;
+    if(S.region !== n.region){
+      S.region = n.region;
+      log('历练区域切换：' + REGIONS[n.region].name + '。', 'log-sys');
+    }
   }
   const prevStory = S.story;
   S.story++;
@@ -3734,8 +3756,12 @@ function doEvent(){
     if(startLimitedEvent()) return;
   }
   const isGreat = LEVELS[S.level].tier >= 3;
+  const hunting = S.mode !== 'seclusion';
+  let coreWeight = 20, midWeight = 0, highWeight = 0;
+  if(hunting && LEVELS[S.level].tier >= 3){ coreWeight -= 8; midWeight = 8; }
+  if(hunting && LEVELS[S.level].tier >= 6){ coreWeight -= 5; highWeight = 5; }
   const eventWeights = isGreat
-    ? [['herb',30],['core',20],['qi',20],['alchemy',10],['affinity',8],['gift',3],['rest',5],['crystal',4]]
+    ? [['herb',30],['core',coreWeight],['coreMid',midWeight],['coreHigh',highWeight],['qi',20],['alchemy',10],['affinity',8],['gift',3],['rest',5],['crystal',4]].filter(function(x){ return x[1] > 0; })
     : [['herb',32.1667],['core',22.1667],['qi',22.1667],['affinity',10.1667],['rest',7.1667],['crystal',6.1667]];
   let roll = rnd() * 100, acc = 0, ev = 'herb';
   for(let i = 0; i < eventWeights.length; i++){
@@ -3756,13 +3782,27 @@ function doEvent(){
       S.herbs += gain;
       log('初入山林，循着药香采得药材 +' + fmt(gain) + '。', 'log-good');
     } else {
-      const gain = Math.max(1, Math.round((0.8 + S.level * 0.08) * (0.6 + rnd() * 0.6) * gm));
+      const gain = Math.max(1, Math.round((1.2 + S.level * 0.12) * (0.6 + rnd() * 0.6) * gm));
       S.cores += gain;
       log(eventFlavor(
         '击杀一头低阶魔兽，剖得魔核 ' + gain + ' 枚。',
         '几只不长眼的低阶魔兽试图打劫，被你一巴掌拍成了血雾。（魔核 +' + gain + '）'
       ), 'log-good');
     }
+  } else if(ev === 'coreMid'){
+    const gain = Math.max(1, Math.round((4 + S.level * 1.80) * (0.8 + rnd() * 0.5) * gm));
+    S.cores += gain;
+    log(eventFlavor(
+      '几头中阶魔兽从林间扑出，皮糙肉厚，挨了你一掌竟只是踉跄。你追出半里，才将它们逐一击毙，剖得魔核 ' + gain + ' 枚。',
+      '中阶魔兽结群围上来，比低阶的棘手得多。你费了些手脚，衣角都被撕开，才从它们颅骨里取出魔核 +' + gain + '。'
+    ), 'log-good');
+  } else if(ev === 'coreHigh'){
+    const gain = Math.max(1, Math.round((8 + S.level * 5.0) * (0.8 + rnd() * 0.5) * gm));
+    S.cores += gain;
+    log(eventFlavor(
+      '一头高阶魔兽从山脊上缓缓站起，威压让四周虫鸣骤停。你与它缠斗良久，最终一掌震碎其颅骨，剖得魔核 ' + gain + ' 枚。',
+      '高阶魔兽的鳞甲硬得离谱，寻常掌风只在上面留下白痕。你找准机会近身，连出三掌才震碎它的心脉。（魔核 +' + gain + '）'
+    ), 'log-good');
   } else if(ev === 'qi'){
     const gain = reqReward(S.level) * (0.08 + rnd() * 0.07) * gm;
     S.qi += gain;
@@ -4558,8 +4598,8 @@ function setMode(m){
     return { ok:false, msg:'尚未解锁' };
   }
   S.mode = m;
-  if(S.mode === 'explore') S.region = bestRegion();
-  if(S.mode === 'gather') S.region = bestGatherRegion();
+  if(S.mode === 'explore') setRegion(bestRegion());
+  if(S.mode === 'gather') setRegion(bestGatherRegion());
   save();
   return { ok:true };
 }
@@ -4575,12 +4615,17 @@ function showModeHelp(){
       '<tr><td>采集</td><td>30%</td><td>100%</td><td>10%</td><td>1.25×</td><td>×1.00</td><td>' + iv('gather') + '</td></tr>' +
       '<tr><td>闭关</td><td>180%</td><td>0%</td><td>0%</td><td>无</td><td>无</td><td>无</td></tr>' +
     '</tbody></table>' +
-    '<p class="hint" style="margin-top:8px">奇遇基础遇火率 0.1%，历练遇火加成 ×1.25；平均间隔已计入机缘不断与当前时空结晶加速。</p>' +
+    '<p class="hint" style="margin-top:8px">效率 = 每秒击杀数，由战力相对区域敌人的优势、胜率与击杀时间共同计算；战力达到敌方 15 倍时封顶 1.5 只/秒，斗气、药材、魔核收益都会按效率结算。</p>' +
+    '<p class="hint">奇遇基础遇火率 0.1%，历练遇火加成 ×1.25；平均间隔已计入机缘不断与当前时空结晶加速。</p>' +
     '<p class="hint">闭关期间无法主动退出；连续失败 3 次或突破大境界后自动出关。每次失败有 20% 走火入魔。</p>';
   showModal('挂机说明', body, [{ t:'知道了' }]);
 }
-function setRegion(i){
-  if(i >= 0 && i < REGIONS.length && regionUnlocked(i)){ S.region = i; save(); }
+function setRegion(i, quiet){
+  if(i >= 0 && i < REGIONS.length && regionUnlocked(i) && S.region !== i){
+    S.region = i;
+    if(!quiet) log('历练区域切换：' + REGIONS[i].name + '。', 'log-sys');
+    save();
+  }
 }
 
 /* ---------- 日志 ---------- */
@@ -4623,7 +4668,7 @@ const SAVE_KEY_NAMES = [
   'tutorialDone','seenUnlocks','seenEvents','breakBuff','milestones','stats','tm','endSeen',
   '_phaseSeen','_flamePity','lastSave','achievements','achievementProgress','time',
   'playTime','runTime','kills','battles','wins','pills','rebirths','maxLevel','storyMax',
-  'brk','craft','event','save','storyThreshold','craftId','priorityStory','storyPowerMode',
+  'brk','craft','event','save','storyThreshold','craftId','priorityStory','storyPowerMode','pillThreshold',
   'skipUnlockPopups','yield','core','herb','frugal','coreOn','herbOn','power','alchemy','pill',
   'lotus','seclusion','initialized','slots','mysteryUsed','mysteryCount','done','rescued',
   'returnCount','returnDone','intel','crystal','order','readyAt','kind','resource','amount',
@@ -4897,6 +4942,8 @@ function loadGame(){
     if(!o.tm) o.tm = d.tm;
     if(!o.repeat) o.repeat = d.repeat;
     if(!o.auto) o.auto = d.auto;
+    if(o.auto.pillThreshold === undefined) o.auto.pillThreshold = 80;
+    o.auto.pillThreshold = clamp(o.auto.pillThreshold | 0, 1, 100);
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
     if(o.settings.ashDim === undefined) o.settings.ashDim = true;
@@ -5085,7 +5132,7 @@ function tick(dt){
     if(S._regionCheck <= 0){
       S._regionCheck = 4;
       const br = S.mode === 'gather' ? bestGatherRegion() : bestRegion();
-      if(br !== S.region) S.region = br;
+      if(br !== S.region) setRegion(br);
     }
   }
 
@@ -5685,6 +5732,11 @@ function renderCultivateDynamic(){
     const v = String(S.auto.storyThreshold || 60);
     if(stEl.value !== v) stEl.value = v;
   }
+  const ptEl = $('pillThreshold');
+  if(ptEl && (!document.activeElement || document.activeElement !== ptEl)){
+    const v = String(S.auto.pillThreshold === undefined ? 80 : S.auto.pillThreshold);
+    if(ptEl.value !== v) ptEl.value = v;
+  }
 }
 function syncSwitch(id, on){
   const el = $(id);
@@ -5817,6 +5869,7 @@ function renderDiyan(){
 function pillEffectText(p){
   if(p.type === 'qi'){
     let s = '丹成即服：修为 +' + Math.round(p.pct * 100) + '% 当前境界所需';
+    if(p.flatQi) s += ' · 额外 +' + p.flatQi + ' 斗气';
     if(p.maxLevel !== undefined){
       const nextName = ((LEVELS[p.maxLevel + 1] || {}).name || '下一境界').replace(/\s+/g, '').replace(/一星$/, '');
       s += ' · 到达' + nextName + '后药力降低（仅剩两成）';
@@ -5920,7 +5973,7 @@ function renderAlchemyUpgrades(){
       const bonus = lv === 1 ? 3 : (lv >= 2 ? 5 : 0);
       effect = lv ? ('额外魔核 +' + pct + '%，成丹率 +' + bonus + '%') : '额外投入魔核，提高成丹率';
     } else if(id === 'frugal'){
-      effect = lv ? '已解锁减料炼丹：六成材料，成丹率减半；不与添薪、凝效叠加' : '解锁一种以六成材料炼丹的策略';
+      effect = lv ? '已解锁减料炼丹：六成材料，成丹率减半；不与添薪叠加，不影响药效' : '解锁一种以六成材料炼丹的策略';
     } else {
       const pct = lv === 1 ? 30 : (lv >= 2 ? 50 : 0);
       const bonus = lv === 1 ? 10 : (lv >= 2 ? 15 : 0);
@@ -6195,6 +6248,21 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.6</span><span class="cl-date">2026-11-09</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>药材 / 魔核资源增长调整为 1.11^境界，突破丹改按最高已解锁区域定价</li>' +
+            '<li>挂机说明补充效率计算方式；每次切换历练区域会写入日志</li>' +
+            '<li>筑基灵液额外增加 100 点斗气，聚气散额外增加 3000 点斗气，额外部分受药力虚浮和丹药倍率影响</li>' +
+            '<li>减料成丹只影响成功率，不再额外降低药效</li>' +
+            '<li>奇遇新增中阶魔兽与高阶魔兽，分别需大斗师、斗皇后解锁，给予更多魔核</li>' +
+            '<li>中阶 / 高阶魔兽魔核成长系数提高，单次收益大幅增加</li>' +
+            '<li>青莲地心火「莲心淬炼」额外使剧情丹与突破丹的魔核消耗 -20%</li>' +
+            '<li>骨灵冷火本源特效「森白传承」：修为丹效果 +10%，丹成气生效果 +50%</li>' +
+            '<li>挂机栏新增自动服丹阈值输入，默认 80%</li>' +
+            '<li>低阶魔兽奇遇的魔核收益略微提高</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.5</span><span class="cl-date">2026-11-09</span></summary>' +
           '<ul class="cl-list">' +
             '<li>焚诀界面的异火列表补全火种上限与药材加成显示</li>' +
@@ -6475,6 +6543,8 @@ async function handleSetting(act){
         o.storyOrder = 4;
       }
       if(!o.auto) o.auto = d.auto;
+    if(o.auto.pillThreshold === undefined) o.auto.pillThreshold = 80;
+    o.auto.pillThreshold = clamp(o.auto.pillThreshold | 0, 1, 100);
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
     if(o.settings.ashDim === undefined) o.settings.ashDim = true;
@@ -6903,6 +6973,21 @@ function bindUI(){
   if($('autoRecipeSel')) $('autoRecipeSel').addEventListener('change', function(e){
     S.auto.craftId = e.target.value; save();
   });
+  if($('pillThreshold')){
+    const applyPillThreshold = function(){
+      let v = parseInt($('pillThreshold').value, 10);
+      if(!isFinite(v)) v = 80;
+      v = clamp(v, 1, 100);
+      S.auto.pillThreshold = v;
+      $('pillThreshold').value = v;
+      save();
+    };
+    $('pillThreshold').addEventListener('change', applyPillThreshold);
+    $('pillThreshold').addEventListener('blur', applyPillThreshold);
+    $('pillThreshold').addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); $('pillThreshold').blur(); }
+    });
+  }
   if($('storyThreshold')){
     const applyThreshold = function(){
       let v = parseInt($('storyThreshold').value, 10);
