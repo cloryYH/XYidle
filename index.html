@@ -168,6 +168,19 @@
     box-shadow:0 6px 20px rgba(0,0,0,.25);white-space:nowrap;
   }
   .pill-debuff:hover .pd-tip{display:block}
+  .heartfire-buff{
+    position:relative;display:inline-flex;align-items:center;margin-left:4px;padding:0 4px;
+    border:1px solid rgba(178,58,42,.24);border-radius:4px;background:rgba(178,58,42,.06);
+    color:#b23a2a;font-size:9px;line-height:15px;cursor:help;white-space:nowrap;
+  }
+  .heartfire-buff[hidden]{display:none}
+  .hf-tip{
+    display:none;position:absolute;left:0;top:calc(100% + 5px);z-index:80;
+    width:230px;padding:7px 9px;border-radius:6px;
+    background:rgba(20,26,22,.96);color:#f3eee2;font-size:10.5px;line-height:1.7;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);white-space:normal;font-weight:400;
+  }
+  .heartfire-buff:hover .hf-tip{display:block}
   .ember-bar{
     position:relative;height:10px;border-radius:99px;overflow:hidden;
     background:rgba(29,37,31,.08);
@@ -417,9 +430,31 @@
   .flame .nm{font-size:12.5px;color:var(--ink);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .flame .rk{font-size:10px;color:var(--dim)}
   .flame .rk b{color:var(--green)}
+  .flame .fstar{color:#b8860b;letter-spacing:.5px;font-size:9px}
+  .flame .fsrc{
+    display:inline-block;margin-left:5px;padding:0 4px;border-radius:3px;
+    font-size:8.5px;line-height:15px;font-weight:400;letter-spacing:0;
+    vertical-align:1px;
+  }
+  .flame .fsrc.origin{color:var(--green);border:1px solid rgba(36,92,69,.25);background:rgba(36,92,69,.07)}
+  .flame .fsrc.split{color:var(--gold);border:1px solid rgba(155,122,51,.28);background:rgba(155,122,51,.07)}
+  .flame .fspecial{font-size:9.5px;line-height:1.5;color:var(--dim);margin-top:3px}
+  .flame .fspecial.on{color:var(--gold)}
   .flame.locked{opacity:.55}
   .flame.locked .nm{color:var(--dim)}
   .flame .tagline{font-size:9.5px;color:var(--dim)}
+  .furnace-rank{
+    margin-top:10px;padding:10px 12px;border:1px solid rgba(36,92,69,.2);
+    border-radius:7px 13px 6px 11px / 10px 7px 12px 8px;
+    background:rgba(255,252,243,.35);
+  }
+  .fr-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .fr-head span{font-size:10px;color:var(--dim);letter-spacing:1px}
+  .fr-head b{font-family:"Noto Serif SC","Songti SC",serif;font-size:21px;color:var(--green);letter-spacing:1px}
+  .fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;margin-top:7px}
+  .fr-cell{display:flex;align-items:baseline;justify-content:space-between;gap:6px;border-top:1px dashed rgba(36,92,69,.18);padding-top:4px}
+  .fr-cell span{font-size:9.5px;color:var(--dim)}
+  .fr-cell b{font-size:11px;color:var(--ink2);font-variant-numeric:tabular-nums;text-align:right}
 
   .stat-line{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:12px}
   .stat-line:last-child{border-bottom:0}
@@ -746,6 +781,7 @@
     .realm{font-size:20px}
     .power{font-size:18px}
     .flame-grid{grid-template-columns:1fr}
+    .fr-grid{grid-template-columns:1fr}
     .tree-grid{grid-template-columns:1fr}
     .rate-grid{grid-template-columns:1fr 1fr}
     .p-grid{grid-template-columns:repeat(3,1fr)}
@@ -802,7 +838,7 @@
       <span class="rate" id="qiRateLabel">斗气 +0/秒</span>
     </div>
     <div class="res-row">
-      <span class="res"><span class="dot"></span>斗气 <b id="qiVal">0</b></span>
+      <span class="res"><span class="dot"></span>斗气 <b id="qiVal">0</b><span class="heartfire-buff" id="heartfireBuff" hidden>心火<span class="hf-tip" id="heartfireTip"></span></span></span>
       <span class="res herb"><span class="dot"></span>药材 <b id="herbVal">0</b></span>
       <span class="res core"><span class="dot"></span>魔核 <b id="coreVal">0</b></span>
       <span class="res cry"><span class="dot"></span>火晶 <b id="cryVal">0</b></span>
@@ -940,23 +976,31 @@
     <!-- ============ 焚诀 ============ -->
     <section class="tab" data-tab="flame">
       <div class="card">
-        <div class="card-title"><span>焚诀</span><span class="sub" id="furnaceTier">黄阶中级</span></div>
+        <div class="card-title"><span>焚诀</span><span class="sub">异火为薪</span></div>
         <div class="hint" id="furnaceDesc"></div>
+        <div class="furnace-rank">
+          <div class="fr-head"><span>焚诀等阶</span><b id="furnaceTier">黄阶中级</b></div>
+          <div class="fr-grid">
+            <div class="fr-cell"><span>当前总星级</span><b id="furnaceStars">0</b></div>
+            <div class="fr-cell"><span>升阶需要</span><b id="furnaceNext">1 星</b></div>
+            <div class="fr-cell"><span>等阶战力</span><b id="furnacePowBonus">+0%</b></div>
+            <div class="fr-cell"><span>等阶斗气</span><b id="furnaceQiBonus">+0%</b></div>
+          </div>
+        </div>
         <div class="bar alt" style="margin-top:10px"><i id="flameFill"></i></div>
         <div class="row between tiny" style="margin-top:4px">
           <span id="flameCount">异火 0 / 23</span>
-          <span id="flameBonus">战力 +0%</span>
         </div>
-        <div class="hint" id="flameRunBonus" style="margin-top:6px"></div>
       </div>
 
       <div class="card">
         <div class="card-title"><span>异火</span><span class="sub">收服后常驻加成，图鉴永久点亮</span></div>
-        <div class="flame-grid" id="flameGrid"></div>
+        <div class="hint" id="flameRunBonus" style="margin-top:6px"></div>
+        <div class="flame-grid" id="flameGrid" style="margin-top:10px"></div>
       </div>
 
       <div class="card" id="fireCultCard" hidden>
-        <div class="card-title"><span>异火修炼</span><span class="sub">以异火淬炼五道</span></div>
+        <div class="card-title"><span>异火修炼</span><span class="sub">异火淬体</span></div>
         <div id="fireCultBody"></div>
       </div>
 
@@ -1109,7 +1153,7 @@
       <div class="card">
         <div class="card-title"><span>转生设置</span></div>
         <div class="switch">
-          <div class="lb">携带异火<small>需先解锁「火种余烬」</small></div>
+          <div class="lb">携带异火本源<small>需先解锁「火种余烬」</small></div>
           <div class="sw" id="swCarry"></div>
         </div>
         <div style="margin-top:7px">
@@ -1148,7 +1192,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.4';
+const GAME_VERSION = 'v0.2.5';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1192,51 +1236,53 @@ const MAX_LEVEL = LEVELS.length - 1;
 
 /* 23 种异火 · 异火榜 */
 const FLAMES = [
-  { id:'diyan', rank:1, name:'帝炎', color:'#ffd166', power:14.0, qi:3.5, herb:2.5, wick:0.80, story:-1,
+  { id:'diyan', rank:1, star:5, name:'帝炎', color:'#ffd166', power:14.0, qi:3.5, herb:2.5, wick:0.80, story:-1,
     desc:'万火相融而成的万火之帝。非天成，乃万火吞噬归一。' },
-  { id:'xuwu', rank:2, name:'虚无吞炎', color:'#3a2a52', power:2.8, qi:0.6, herb:0.2, wick:0.10, story:27,
+  { id:'xuwu', rank:2, star:5, name:'虚无吞炎', color:'#3a2a52', power:2.8, qi:0.6, herb:0.2, wick:0.10, story:27,
     desc:'生于虚无，无相可寻。吞天噬地，唯寥寥数物可挡。' },
-  { id:'jinglian', rank:3, name:'净莲妖火', color:'#ffd9ec', power:2.4, qi:0.5, herb:0.3, wick:0.08, story:23,
+  { id:'jinglian', rank:3, star:5, name:'净莲妖火', color:'#ffd9ec', power:2.4, qi:0.5, herb:0.3, wick:0.08, story:23,
     desc:'乳白莲火，净化万物。沾之丁点，皆归虚无。' },
-  { id:'jindi', rank:4, name:'金帝焚天炎', color:'#ffc93c', power:2.05, qi:0.45, herb:0.1, wick:0.07, story:20,
+  { id:'jindi', rank:4, star:5, name:'金帝焚天炎', color:'#ffc93c', power:2.05, qi:0.45, herb:0.1, wick:0.07, story:20,
     desc:'古族传承之火，号称连斗气都能燃烧。' },
-  { id:'shengling', rank:5, name:'生灵之焱', color:'#58d68d', power:1.55, qi:0.4, herb:1.1, wick:0.06, story:-2,
+  { id:'shengling', rank:5, star:5, name:'生灵之焱', color:'#58d68d', power:1.55, qi:0.4, herb:1.1, wick:0.06, story:-2,
     desc:'绿色生命之火。种子投入其中，须臾便可长成药材。' },
-  { id:'bahuang', rank:6, name:'八荒破灭焱', color:'#4b4458', power:1.75, qi:0.35, herb:0.05, wick:0.06, story:-2,
+  { id:'bahuang', rank:6, star:4, name:'八荒破灭焱', color:'#4b4458', power:1.75, qi:0.35, herb:0.05, wick:0.06, story:-2,
     desc:'炎族至火，可化百丈火焰双翼，霸道绝伦。' },
-  { id:'jiuyoujin', rank:7, name:'九幽金祖火', color:'#e0a92e', power:1.6, qi:0.33, herb:0.05, wick:0.05, story:-2,
+  { id:'jiuyoujin', rank:7, star:4, name:'九幽金祖火', color:'#e0a92e', power:1.6, qi:0.33, herb:0.05, wick:0.05, story:-2,
     desc:'九幽地冥族旧物，后归炎族，可与金帝焚天炎抗衡。' },
-  { id:'honglian', rank:8, name:'红莲业火', color:'#c0392b', power:1.45, qi:0.32, herb:0.08, wick:0.05, story:-2,
+  { id:'honglian', rank:8, star:4, name:'红莲业火', color:'#c0392b', power:1.45, qi:0.32, herb:0.08, wick:0.05, story:-2,
     desc:'深红妖艳，火苗蹿升间自成红莲之状。' },
-  { id:'sanqian', rank:9, name:'三千焱炎火', color:'#7b4bb7', power:1.3, qi:0.3, herb:0.06, wick:0.05, story:15,
+  { id:'sanqian', rank:9, star:4, name:'三千焱炎火', color:'#7b4bb7', power:1.3, qi:0.3, herb:0.06, wick:0.05, story:15,
     desc:'生于星空，吸星辰之力。得之者号称不死体。' },
-  { id:'jiuyoufeng', rank:10, name:'九幽风炎', color:'#3d3d4d', power:1.18, qi:0.28, herb:0.05, wick:0.04, story:-2,
+  { id:'jiuyoufeng', rank:10, star:4, name:'九幽风炎', color:'#3d3d4d', power:1.18, qi:0.28, herb:0.05, wick:0.04, story:-2,
     desc:'生于极阴深渊，风声入耳，可乱人心神。' },
-  { id:'guling', rank:11, name:'骨灵冷火', color:'#e6f2f8', power:1.05, qi:0.26, herb:0.06, wick:0.04, story:17,
+  { id:'guling', rank:11, star:4, name:'骨灵冷火', color:'#e6f2f8', power:1.05, qi:0.26, herb:0.06, wick:0.04, story:17,
     desc:'极寒与极热相生。百年日月交替，方得一遇。' },
-  { id:'jiulong', rank:12, name:'九龙雷罡火', color:'#b9c4d0', power:0.95, qi:0.24, herb:0.05, wick:0.04, story:-2,
+  { id:'jiulong', rank:12, star:3, name:'九龙雷罡火', color:'#b9c4d0', power:0.95, qi:0.24, herb:0.05, wick:0.04, story:-2,
     desc:'银色火焰，九条雷龙游走其间，龙威震魂。' },
-  { id:'guiling', rank:13, name:'龟灵地火', color:'#8b5a2b', power:0.88, qi:0.22, herb:0.07, wick:0.035, story:-2,
+  { id:'guiling', rank:13, star:3, name:'龟灵地火', color:'#8b5a2b', power:0.88, qi:0.22, herb:0.07, wick:0.035, story:-2,
     desc:'状如巨龟，遍体火刺，褐色地火狰狞而厚重。' },
-  { id:'yunluo', rank:14, name:'陨落心炎', color:'#8fd8e8', power:0.8, qi:0.4, herb:0.05, wick:0.04, story:8,
+  { id:'yunluo', rank:14, star:4, name:'陨落心炎', color:'#8fd8e8', power:0.8, qi:0.4, herb:0.05, wick:0.04, story:8,
+    specialName:'心火自燃', specialDesc:'持有本源时，每秒获得当前境界所需斗气的万分之五。',
     desc:'火由心生，淬气炼骨。号称修炼作弊器。' },
-  { id:'haixin', rank:15, name:'海心焰', color:'#2f6fb8', power:0.72, qi:0.2, herb:0.1, wick:0.035, story:22,
+  { id:'haixin', rank:15, star:3, name:'海心焰', color:'#2f6fb8', power:0.72, qi:0.2, herb:0.1, wick:0.035, story:22,
     desc:'深蓝如海，火焰升腾间涟漪层叠，玄异莫名。' },
-  { id:'huoyun', rank:16, name:'火云水炎', color:'#7a5bd6', power:0.65, qi:0.18, herb:0.06, wick:0.03, story:-2,
+  { id:'huoyun', rank:16, star:3, name:'火云水炎', color:'#7a5bd6', power:0.65, qi:0.18, herb:0.06, wick:0.03, story:-2,
     desc:'炎族火耀长老之物，原著着墨极少，火性难测。' },
-  { id:'huoshan', rank:17, name:'火山石焰', color:'#a03a2a', power:0.58, qi:0.16, herb:0.05, wick:0.03, story:-2,
+  { id:'huoshan', rank:17, star:3, name:'火山石焰', color:'#a03a2a', power:0.58, qi:0.16, herb:0.05, wick:0.03, story:-2,
     desc:'暗红熔岩之火，与九幽金祖火相融可成新火。' },
-  { id:'fengnu', rank:18, name:'风怒龙炎', color:'#c9a227', power:0.52, qi:0.15, herb:0.05, wick:0.03, story:-2,
+  { id:'fengnu', rank:18, star:3, name:'风怒龙炎', color:'#c9a227', power:0.52, qi:0.15, herb:0.05, wick:0.03, story:-2,
     desc:'生于沙漠龙卷风眼，风火相济，高达数百米。' },
-  { id:'qinglian', rank:19, name:'青莲地心火', color:'#2fc7b0', power:0.46, qi:0.22, herb:0.12, wick:0.04, story:4,
+  { id:'qinglian', rank:19, star:3, name:'青莲地心火', color:'#2fc7b0', power:0.46, qi:0.22, herb:0.12, wick:0.04, story:4,
+    specialName:'莲心淬炼', specialDesc:'持有本源时，炼制剧情丹与突破丹的药材消耗 -20%。',
     desc:'地心熔岩千年成莲，莲心一簇青火，可引火山喷发。' },
-  { id:'youming', rank:20, name:'幽冥毒火', color:'#6fbf3f', power:0.42, qi:0.14, herb:0.08, wick:0.025, story:-2,
+  { id:'youming', rank:20, star:2, name:'幽冥毒火', color:'#6fbf3f', power:0.42, qi:0.14, herb:0.08, wick:0.025, story:-2,
     desc:'毒泽瘴气千万年熏养，色绿如鬼火，沾之即中毒。' },
-  { id:'yinyang', rank:21, name:'阴阳双炎', color:'#cfd6e0', power:0.38, qi:0.13, herb:0.05, wick:0.025, story:-2,
+  { id:'yinyang', rank:21, star:2, name:'阴阳双炎', color:'#cfd6e0', power:0.38, qi:0.13, herb:0.05, wick:0.025, story:-2,
     desc:'黑白双火如阴阳双鱼，阳火救人，阴火杀人。' },
-  { id:'wanshou', rank:22, name:'万兽灵火', color:'#d06a3a', power:0.34, qi:0.12, herb:0.06, wick:0.025, story:-2,
+  { id:'wanshou', rank:22, star:2, name:'万兽灵火', color:'#d06a3a', power:0.34, qi:0.12, herb:0.06, wick:0.025, story:-2,
     desc:'原著仅留其名。传闻万兽之魂凝于火中，咆哮不散。' },
-  { id:'xuanhuang', rank:23, name:'玄黄炎', color:'#b8860b', power:0.3, qi:0.11, herb:0.05, wick:0.025, story:-2,
+  { id:'xuanhuang', rank:23, star:2, name:'玄黄炎', color:'#b8860b', power:0.3, qi:0.11, herb:0.05, wick:0.025, story:-2,
     desc:'古帝洞府异火广场所见，深黄古朴，来历成谜。' }
 ];
 const FLAME_BY_ID = {};
@@ -1707,11 +1753,11 @@ const TREE = [
   { id:'flame1',name:'异火亲和',     cost:320, req:[],        desc:'奇遇遇火概率 +60%' },
   { id:'event1',name:'机缘不断·一',  cost:240, req:[],        desc:'奇遇触发间隔 -15%' },
   { id:'event2',name:'机缘不断·二',  cost:560, req:['event1'],desc:'奇遇触发间隔再 -20%（合计约 -32%）' },
-  { id:'mem1',  name:'轮回记忆·一',  cost:380, req:[],        desc:'轮回火晶 +35%' },
-  { id:'mem2',  name:'轮回记忆·二',  cost:760, req:['mem1'],  desc:'轮回火晶再 +40%（两件合计 +75%）' },
+  { id:'mem1',  name:'轮回记忆·一',  cost:280, req:[],        desc:'轮回火晶 +35%' },
+  { id:'mem2',  name:'轮回记忆·二',  cost:660, req:['mem1'],  desc:'轮回火晶再 +40%（两件合计 +75%）' },
   { id:'timecry',name:'时空结晶',    cost:320, req:[],         desc:'轮回时补充一枚时空结晶（最多 1 枚），可在丹囊燃烧' },
   { id:'timecry2',name:'时空延展',   cost:580, req:['timecry'], desc:'时空结晶持续时间 ×2（15 → 30 分钟）' },
-  { id:'start1',name:'火种余烬',     cost:620, req:[],         desc:'转生可携带一种已收服异火' },
+  { id:'start1',name:'火种余烬',     cost:320, req:[],         desc:'转生时携带一种异火本源（包括帝炎）' },
   { id:'ash1',  name:'不灭余烬',     cost:720, req:[],         desc:'灰烬惩罚由 -80% 降至 -50%' },
   { id:'fail1', name:'败而不馁·一',  cost:180, req:[],          desc:'战斗失败扣除的火种时间 -30%' },
   { id:'fail2', name:'败而不馁·二',  cost:460, req:['fail1'],   desc:'失败火种损失再 -25%（合计 -55%）' },
@@ -1869,12 +1915,18 @@ function enemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMu
 // 野外历练与剧情共用同一套侵蚀度敌人增幅
 function regionEnemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMult(); }
 
+function powerAdvantageWinChance(P, E){
+  const t = clamp(P / E - 1, 0, 1);
+  return 0.5 + 1.2 * t - 0.9 * t * t + 0.2 * t * t * t;
+}
 function winChance(P, E){
   if(P <= 0) return 0.02;
+  if(P >= E) return powerAdvantageWinChance(P, E);
   return clamp(1 / (1 + Math.pow(E / P, 2.8)), 0.02, 0.985);
 }
 function storyWinChance(P, E){
   if(P <= 0) return 0.02;
+  if(P >= E) return powerAdvantageWinChance(P, E);
   return clamp(1 / (1 + Math.pow(E / P, 4.0)), 0.02, 0.985);
 }
 function battleOddsLabel(w){
@@ -1915,6 +1967,8 @@ function defaultState(){
     seclusionFails: 0,
     region: 0,
     flames: [],
+    splitFlames: [],
+    flameKind: {},
     partners: ['yaolao'],
     affinity: {},
     seenFlames: [],
@@ -1984,9 +2038,31 @@ function phaseName(){
   const p = phase();
   return p === 'orange' ? '橙红' : (p === 'red' ? '暗红' : '灰烬');
 }
+function flameKindOf(id){
+  if(S.flameKind && S.flameKind[id]) return S.flameKind[id] === 'split' ? 'split' : 'origin';
+  if(S.splitFlames && S.splitFlames.indexOf(id) >= 0) return 'split';
+  return 'origin';
+}
+function isSplitFlame(id){ return flameKindOf(id) === 'split'; }
+function hasOriginFlame(id){ return S.flames.indexOf(id) >= 0 && flameKindOf(id) === 'origin'; }
+function originFlameQiPerSec(){
+  if(S.level >= MAX_LEVEL || !hasOriginFlame('yunluo')) return 0;
+  return breakNeed(S.level) * 0.0005 * phaseMult();
+}
+function flameStatMult(id){ return isSplitFlame(id) ? 0.1 : 1; }
+function flameEffectMult(id){ return isSplitFlame(id) ? 0.5 : 1; }
+function flameCountWeight(){
+  return (S.flames || []).reduce(function(sum, id){ return sum + flameEffectMult(id); }, 0);
+}
+function flameStarValue(id){
+  const f = FLAME_BY_ID[id];
+  if(!f) return 0;
+  if(!isSplitFlame(id)) return f.star || 0;
+  return ({ 2:1, 3:2, 4:2.5, 5:3 })[f.star] || 1;
+}
 function calcWickMax(){
   let mult = 1;
-  S.flames.forEach(function(id){ if(FLAME_BY_ID[id]) mult += FLAME_BY_ID[id].wick; });
+  S.flames.forEach(function(id){ if(FLAME_BY_ID[id]) mult += FLAME_BY_ID[id].wick * flameStatMult(id); });
   if(hasTree('wick1')) mult += 0.30;
   if(hasTree('wick2')) mult += 0.50;
   if(hasTree('wick3')) mult += 0.80;
@@ -1996,48 +2072,68 @@ function addWick(sec){
   S.wick = Math.max(0, Math.min(S.wickMax, S.wick + sec));
 }
 function addFlame(id, silent){
-  if(!FLAME_BY_ID[id] || S.flames.indexOf(id) >= 0) return false;
+  const f = FLAME_BY_ID[id];
+  if(!f) return false;
+  const existing = S.flames.indexOf(id) >= 0;
+  if(existing && flameKindOf(id) === 'origin') return false;
   const oldMax = S.wickMax;
-  S.flames.push(id);
-  addMilestone('flame', (silent ? '携带' : '收服') + '异火「' + FLAME_BY_ID[id].name + '」');
+  if(!existing) S.flames.push(id);
+  if(!S.flameKind) S.flameKind = {};
+  S.flameKind[id] = 'origin';
+  if(id !== 'diyan'){
+    if(!Array.isArray(S.splitFlames)) S.splitFlames = [];
+    if(S.splitFlames.indexOf(id) < 0) S.splitFlames.push(id);
+  }
+  addMilestone('flame', existing ? '分焰归本源「' + f.name + '」' : ((silent ? '携带' : '收服') + '异火「' + f.name + '」'));
   if(S.seenFlames.indexOf(id) < 0){
     if(!S.flameFirst) S.flameFirst = {};
     if(!S.flameFirst[id]) S.flameFirst[id] = { cycle: S.cycle, t: Math.floor(S.stats.runTime) };
     S.seenFlames.push(id);
-    if(!silent) log('异火图鉴点亮：' + FLAME_BY_ID[id].name + '。', 'log-good');
+    if(!silent) log('异火图鉴点亮：' + f.name + '。', 'log-good');
   }
   const newMax = calcWickMax();
   S.wick = Math.min(newMax, S.wick + Math.max(0, newMax - oldMax));
   S.wickMax = newMax;
   if(!silent){
-    log('收服异火榜第 ' + FLAME_BY_ID[id].rank + ' 位「' + FLAME_BY_ID[id].name + '」，本源火种一旺。', 'log-good');
+    log(existing ? ('分焰归位，重得本源「' + f.name + '」，本源火种一旺。') :
+      ('收服异火榜第 ' + f.rank + ' 位「' + f.name + '」，本源火种一旺。'), 'log-good');
   }
   return true;
 }
 
 /* ---------- 加成 ---------- */
+const FURNACE_STAR_THRESHOLDS = [0, 1, 2, 3, 5, 7, 12, 60, 72];
+const FURNACE_NAMES = ['黄阶中级','黄阶高级','玄阶低级','玄阶中级','玄阶高级','地阶低级','地阶高级','天阶低级','天阶高级','帝阶'];
+function furnaceStarTotal(){
+  return (S.flames || []).reduce(function(sum, id){ return sum + flameStarValue(id); }, 0);
+}
 function furnaceTierIndex(){
   if(S.flames.indexOf('diyan') >= 0) return 9;
-  const n = S.flames.length;
-  if(n >= 21) return 8;
-  if(n >= 15) return 7;
-  if(n >= 10) return 6;
-  if(n >= 8) return 5;
-  if(n >= 6) return 4;
-  if(n >= 4) return 3;
-  if(n >= 2) return 2;
-  if(n >= 1) return 1;
-  return 0;
+  const total = furnaceStarTotal();
+  let tier = 0;
+  for(let i = 0; i < FURNACE_STAR_THRESHOLDS.length; i++){
+    if(total >= FURNACE_STAR_THRESHOLDS[i]) tier = i;
+  }
+  return tier;
 }
-const FURNACE_NAMES = ['黄阶中级','黄阶高级','玄阶低级','玄阶中级','玄阶高级','地阶低级','地阶高级','天阶低级','天阶高级','帝阶'];
 function furnaceName(){ return FURNACE_NAMES[furnaceTierIndex()]; }
+function furnaceNextText(){
+  const tier = furnaceTierIndex();
+  if(tier >= 9) return '已至帝阶';
+  if(tier >= 8) return '需合成帝炎';
+  const next = FURNACE_STAR_THRESHOLDS[tier + 1];
+  const left = Math.max(0, next - furnaceStarTotal());
+  const leftText = Number.isInteger(left) ? String(left) : left.toFixed(1);
+  return next + ' 星（还差 ' + leftText + '）';
+}
 
 function bonuses(){
   const pm = phaseMult();
   let fPow = 0, fQi = 0, fHerb = 0;
   S.flames.forEach(function(id){
     const f = FLAME_BY_ID[id]; if(!f) return;
-    fPow += f.power; fQi += f.qi; fHerb += f.herb;
+    const m = flameStatMult(id);
+    fPow += f.power * m; fQi += f.qi * m; fHerb += f.herb * m;
   });
   let pPow = 0, pQi = 0, pHerb = 0;
   S.partners.forEach(function(id){
@@ -2224,9 +2320,9 @@ function fireCultPillMult(){ return 1 + 0.02 * fireCultLevel('pill'); }
 function fireCultSeclusionMult(){ return 1 + 0.03 * fireCultLevel('seclusion'); }
 function fireCultBreakBonus(){ return 0.005 * fireCultLevel('seclusion'); }
 function lotusProc(){
-  return clamp(0.05 + 0.035 * fireCultLevel('lotus') + (hasTree('proc1') ? 0.08 : 0) + 0.01 * S.flames.length, 0, 0.85);
+  return clamp(0.05 + 0.035 * fireCultLevel('lotus') + (hasTree('proc1') ? 0.08 : 0) + 0.01 * flameCountWeight(), 0, 0.85);
 }
-function lotusPower(){ return 2.5 + 0.18 * fireCultLevel('lotus') + 0.02 * S.flames.length; }
+function lotusPower(){ return 2.5 + 0.18 * fireCultLevel('lotus') + 0.02 * flameCountWeight(); }
 
 
 /* ---------- 关卡 ---------- */
@@ -2332,6 +2428,9 @@ function alchLevelFor(exp){
 function alchRankName(){
   return ['','一品','二品','三品','四品','五品','六品','七品','八品','九品'][S.alchemyLevel] + '炼药师';
 }
+function pillHerbDiscount(p){
+  return (p && (p.type === 'break' || p.type === 'key') && hasOriginFlame('qinglian')) ? 0.8 : 1;
+}
 function pillBaseCost(p){
   const L = S.level;
   const lt = levelTime(L);
@@ -2360,6 +2459,9 @@ function pillBaseCost(p){
       herb: Math.max(1, Math.round(300 * herbBase(R))),
       core: Math.max(1, Math.round(30 * coreBase(R)))
     };
+  }
+  if(p.type === 'break' || p.type === 'key'){
+    cost.herb = Math.max(1, Math.round(cost.herb * pillHerbDiscount(p)));
   }
   return cost;
 }
@@ -2558,18 +2660,20 @@ function submitMerchantBreak(index){
 }
 function baseCraftChance(p){
   const base = [0, 0.95, 0.92, 0.88, 0.83, 0.77, 0.70, 0.62, 0.53, 0.44][p.tier] || 0.4;
-  let c = base + 0.04 * (S.alchemyLevel - p.tier) + Math.min(0.18, 0.02 * S.flames.length) + fireCultAlchemyBonus();
+  let c = base + 0.04 * (S.alchemyLevel - p.tier) + Math.min(0.18, 0.02 * flameCountWeight()) + fireCultAlchemyBonus();
   if(hasTree('alch1')) c += 0.05;
   if(S.alchemyLevel < p.tier) c -= 0.3;
-  return clamp(c, 0.05, 1);
+  return Math.max(0.05, c);
 }
 function craftChance(p, frugal){
-  const base = baseCraftChance(p);
+  let base = baseCraftChance(p);
+  // 减料先砍半，再统一按 100% 封顶；基础概率超过 100% 时，减料仍可能高于 50%
+  if(frugal) base *= 0.5;
+  base = clamp(base, 0.05, 1);
   const streak = (S.craftFailStreak && S.craftFailStreak[p.id]) || 0;
   // 连续失败后，本次成丹率相对提高 50%，最高 100%
   let c = streak > 0 ? base * 1.5 : base;
-  if(frugal) c *= 0.5;
-  else c += alchemySuccessBonus(p);
+  if(!frugal) c += alchemySuccessBonus(p);
   return clamp(c, 0.05, 1);
 }
 function canCraft(p, frugal){
@@ -3166,7 +3270,7 @@ function battleApplyAction(b, key){
     if(skillId === 'xizhang'){
       playerAttacked = true; playerMult = 0.8; b.nextEnemyAtkDown = 0.70;
     } else if(skillId === 'chuihuo'){
-      playerAttacked = true; playerMult = 1.10 + 0.05 * S.flames.length;
+      playerAttacked = true; playerMult = 1.10 + 0.05 * flameCountWeight();
     } else if(skillId === 'baji'){
       b.darkEnergies.push({ turns: 2 });
       b.log.push('你将暗劲拍入敌人体内，一回合后暗劲爆发。');
@@ -3579,7 +3683,7 @@ function flamePoolMissing(){
 }
 function flamePoolSeenMissing(){
   return FLAMES.filter(function(f){
-    return f.story === -2 && S.seenFlames.indexOf(f.id) >= 0 && S.flames.indexOf(f.id) < 0;
+    return f.story === -2 && S.seenFlames.indexOf(f.id) >= 0 && flameKindOf(f.id) !== 'origin';
   });
 }
 function realmFlameChanceMult(){
@@ -3622,7 +3726,6 @@ function doEvent(){
         markEventSeen('wildFlame');
         addFlame(f.id);
         S._flamePity = 0;
-        log('旧地重游，竟又寻见一缕「' + f.name + '」残焰，重新纳于焚诀之中。', 'log-good');
         return;
       }
     }
@@ -3974,7 +4077,7 @@ function startLimitedEvent(){
     g.searchReward = herbRate * 15;
     g.helpCost = herbRate * 30;
   } else if(type === 'residual'){
-    g.absorbChance = clamp(0.35 + 0.05 * S.flames.length, 0, 1);
+    g.absorbChance = clamp(0.35 + 0.05 * flameCountWeight(), 0, 1);
   } else if(type === 'soulHunt'){
     const prev = NODES[S.story - 1];
     if(!prev) return false;
@@ -4277,8 +4380,27 @@ function rebirth(){
   } else {
     S.timeCrystal = 0;
   }
-  S.flames = []; S.partners = ['yaolao'];
+  if(!Array.isArray(S.splitFlames)) S.splitFlames = [];
+  (S.flames || []).forEach(function(id){
+    if(id !== 'diyan' && S.splitFlames.indexOf(id) < 0) S.splitFlames.push(id);
+  });
+  const inherited = S.splitFlames.filter(function(id){ return id !== 'diyan'; });
+  S.flames = inherited.slice();
+  S.flameKind = {};
+  S.flames.forEach(function(id){ S.flameKind[id] = 'split'; });
+  if(carry){
+    if(carry === 'diyan'){
+      if(S.flames.indexOf('diyan') < 0) S.flames.push('diyan');
+      S.flameKind.diyan = 'origin';
+    } else {
+      if(S.flames.indexOf(carry) < 0) S.flames.push(carry);
+      S.flameKind[carry] = 'origin';
+      if(S.splitFlames.indexOf(carry) < 0) S.splitFlames.push(carry);
+    }
+  }
+  S.partners = ['yaolao'];
   S.pills = {};
+  S.lastPillId = null;
   S.storyCrafted = {};
   S.craftFailStreak = {};
   S.milestones = [];
@@ -4306,7 +4428,7 @@ function rebirth(){
   S.diyinGiven = false;
   S.diyinLearned = false;
   S.wickMax = calcWickMax(); S.wick = S.wickMax;
-  if(carry) addFlame(carry, true);
+  if(carry) addMilestone('flame', '携带本源「' + (FLAME_BY_ID[carry] ? FLAME_BY_ID[carry].name : carry) + '」');
   const showCorruption = S.cycle === 2 && !(S.seenUnlocks && S.seenUnlocks.corruption);
   if(showCorruption){
     if(!S.seenUnlocks) S.seenUnlocks = {};
@@ -4323,7 +4445,12 @@ function fuseDiyan(){
   if(S.flames.indexOf('diyan') >= 0) return { ok:false, msg:'帝炎已成' };
   if(S.seenFlames.length < FLAME_TOTAL - 2) return { ok:false, msg:'异火图鉴未齐（' + S.seenFlames.length + '/' + (FLAME_TOTAL - 2) + '，虚无吞炎尚在魂天帝手中）' };
   const oldMax = S.wickMax;
+  if(!Array.isArray(S.splitFlames)) S.splitFlames = [];
+  S.flames.forEach(function(id){
+    if(id !== 'diyan' && S.splitFlames.indexOf(id) < 0) S.splitFlames.push(id);
+  });
   S.flames = ['diyan'];
+  S.flameKind = { diyan:'origin' };
   if(S.seenFlames.indexOf('diyan') < 0){
     if(!S.flameFirst) S.flameFirst = {};
     if(!S.flameFirst['diyan']) S.flameFirst['diyan'] = { cycle: S.cycle, t: Math.floor(S.stats.runTime) };
@@ -4488,6 +4615,7 @@ const SAVE_KEY_NAMES = [
   'version','cycle','corruption','nextCorruption','level','qi','herbs','cores','gifts',
   'timeCrystal','timeBuff','crystals','wick','wickMax','pillDebuff','injured','limitedCd',
   'diyinGiven','diyinLearned','mode','seclusionFails','region','flames','partners','affinity',
+  'splitFlames','flameKind',
   'seenFlames','flameFirst','seenPartners','pills','lastPillId','storyCrafted','craftFailStreak',
   'alchemyLevel','alchemyExp','alchemyUpgrade','fireCult','merchant','traveler','flameResidualUsed',
   'soulHuntDefeated','flameMaxBonus','flameIntel','control','rebirthUnlocked','story','storyOrder',
@@ -4559,6 +4687,8 @@ function saveDecodeObject(o){
 function saveEncodeValue(key, v){
   if(v === null || v === undefined) return v;
   if(key === 'flames' || key === 'seenFlames') return v.map(function(id){ return saveEncodeId(id, FLAME_INDEX); });
+  if(key === 'splitFlames') return v.map(function(id){ return saveEncodeId(id, FLAME_INDEX); });
+  if(key === 'flameKind') return saveEncodeIdMap(v, FLAME_INDEX);
   if(key === 'partners' || key === 'seenPartners') return v.map(function(id){ return saveEncodeId(id, PARTNER_INDEX); });
   if(key === 'lastPillId' || key === 'craftId' || key === 'pillId') return saveEncodeId(v, PILL_INDEX);
   if(key === 'carry') return saveEncodeId(v, FLAME_INDEX);
@@ -4577,6 +4707,8 @@ function saveEncodeValue(key, v){
 function saveDecodeValue(key, v){
   if(v === null || v === undefined) return v;
   if(key === 'flames' || key === 'seenFlames') return v.map(function(id){ return saveDecodeId(id, FLAMES); });
+  if(key === 'splitFlames') return v.map(function(id){ return saveDecodeId(id, FLAMES); });
+  if(key === 'flameKind') return saveDecodeIdMap(v, FLAMES);
   if(key === 'partners' || key === 'seenPartners') return v.map(function(id){ return saveDecodeId(id, PARTNERS); });
   if(key === 'lastPillId' || key === 'craftId' || key === 'pillId') return saveDecodeId(v, PILLS);
   if(key === 'carry') return saveDecodeId(v, FLAMES);
@@ -4706,6 +4838,21 @@ function save(){
     return true;
   } catch(e){ return false; }
 }
+function normalizeFlameSources(o){
+  const hadSplit = Array.isArray(o.splitFlames);
+  if(!hadSplit) o.splitFlames = (o.seenFlames || o.flames || []).filter(function(id){ return id !== 'diyan'; });
+  if(!o.flameKind || typeof o.flameKind !== 'object') o.flameKind = {};
+  (o.flames || []).forEach(function(id){
+    if(id === 'diyan'){ o.flameKind[id] = 'origin'; return; }
+    if(!hadSplit){
+      o.flameKind[id] = 'origin';
+      if(o.splitFlames.indexOf(id) < 0) o.splitFlames.push(id);
+    } else {
+      if(!o.flameKind[id]) o.flameKind[id] = o.splitFlames.indexOf(id) >= 0 ? 'split' : 'origin';
+      if(o.flameKind[id] === 'origin' && o.splitFlames.indexOf(id) < 0) o.splitFlames.push(id);
+    }
+  });
+}
 function loadGame(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
@@ -4725,6 +4872,7 @@ function loadGame(){
     if(!Array.isArray(o.flames)) o.flames = [];
     if(!Array.isArray(o.partners)) o.partners = ['yaolao'];
     if(!Array.isArray(o.seenFlames)) o.seenFlames = [];
+    normalizeFlameSources(o);
     if(!o.flameFirst || typeof o.flameFirst !== 'object') o.flameFirst = {};
     if(!Array.isArray(o.seenPartners)) o.seenPartners = ['yaolao'];
     if(!Array.isArray(o.milestones)) o.milestones = [];
@@ -4879,7 +5027,7 @@ function showLegacySaveNotice(){
 }
 function calcWickMaxFor(o){
   let mult = 1;
-  (o.flames || []).forEach(function(id){ if(FLAME_BY_ID[id]) mult += FLAME_BY_ID[id].wick; });
+  (o.flames || []).forEach(function(id){ if(FLAME_BY_ID[id]) mult += FLAME_BY_ID[id].wick * ((o.flameKind && o.flameKind[id] === 'split') ? 0.1 : 1); });
   if(o.tree){
     if(o.tree.wick1) mult += 0.30;
     if(o.tree.wick2) mult += 0.50;
@@ -4963,6 +5111,7 @@ function tick(dt){
     S.cores += st.core * dt * gainM * rm;
     S.stats.kills += dt / st.dur;
   }
+  S.qi += originFlameQiPerSec() * dt;
   if(S.mode === 'seclusion' && phase() === 'ash'){
     exitSeclusion('火种将熄');
   }
@@ -5217,6 +5366,15 @@ function renderHUD(){
   if($('powerLabel')) $('powerLabel').textContent = fmt(power());
   if($('qiRateLabel')) $('qiRateLabel').textContent = '斗气 +' + fmt(qiRate()) + '/秒';
   if($('qiVal')) $('qiVal').textContent = fmt(S.qi);
+  if($('heartfireBuff')){
+    const hfActive = hasOriginFlame('yunluo');
+    $('heartfireBuff').hidden = !hfActive;
+    if(hfActive && $('heartfireTip')){
+      $('heartfireTip').innerHTML = '心火自燃：每秒获得当前境界所需斗气的万分之五。' +
+        '<br>当前 +' + fmt(originFlameQiPerSec()) + ' 斗气/秒' +
+        (phase() === 'orange' ? '' : '（' + phaseName() + '阶段已衰减）');
+    }
+  }
   if($('herbVal')) $('herbVal').textContent = fmt(S.herbs);
   if($('coreVal')) $('coreVal').textContent = fmt(S.cores);
   if($('cryVal')) $('cryVal').textContent = fmt(S.crystals);
@@ -5312,7 +5470,7 @@ function renderStoryCard(force){
     '<div class="story-desc">' + esc(n.desc) + '</div>' +
     '<div class="story-meta">' +
       '<span>' + (nodeHasEnemy(n) ? '敌方战力' : '战力') + ' <b id="nodeEnemy">' + fmt(E) + '</b></span>' +
-      (nodeHasEnemy(n) ? '<span>战况 <b id="nodeWin">' + battleOddsLabel(w) + '</b></span>' : '<span>胜率 <b id="nodeWin">' + pct(w) + '</b></span>') +
+      (nodeHasEnemy(n) ? '<span>战况 <b id="nodeWin">' + battleOddsLabel(w) + '</b></span>' : '<span>胜率 <b id="nodeWin">' + (S.story === 0 ? '-' : pct(w)) + '</b></span>') +
       (n.key ? '<span>丹药 <b class="' + ((S.pills[n.key] || 0) > 0 ? 'ok' : 'no') + '" id="nodeKey">' + PILL_BY_ID[n.key].name + '</b></span>' : '') +
       (n.title === '双帝之战' ? '<span>帝炎 <b class="' + (S.flames.indexOf('diyan') >= 0 ? 'ok' : 'no') + '" id="nodeFlame">' + (S.flames.indexOf('diyan') >= 0 ? '已成' : '未成') + '</b></span>' : '') +
     '</div>' +
@@ -5331,7 +5489,15 @@ function updateStoryDynamic(){
   const w = nodeWin(n);
   const info = canChallenge(n);
   const winEl = $('nodeWin');
-  if(winEl){ winEl.textContent = nodeHasEnemy(n) ? battleOddsLabel(w) : pct(w); winEl.className = w >= 0.7 ? 'ok' : (w < 0.35 ? 'no' : ''); }
+  if(winEl){
+    if(S.story === 0){
+      winEl.textContent = '-';
+      winEl.className = '';
+    } else {
+      winEl.textContent = nodeHasEnemy(n) ? battleOddsLabel(w) : pct(w);
+      winEl.className = w >= 0.7 ? 'ok' : (w < 0.35 ? 'no' : '');
+    }
+  }
   const ash = phase() === 'ash';
   const ashSpent = ash && S.ashStrikeUsed;
   const skipReady = !ash && info.ok && canSkipStoryBattle(n, power(), nodeEnemy(n));
@@ -5532,7 +5698,7 @@ function flameOrb(f, size){
   return '<span class="orb" style="background:radial-gradient(circle at 50% 62%,#fff8e0 0%,' + f.color + ' 45%,rgba(0,0,0,.55) 100%);color:' + f.color + '"></span>';
 }
 function renderFlameGrid(force){
-  const key = S.flames.join(',') + '|' + S.seenFlames.length;
+  const key = S.flames.join(',') + '|' + S.seenFlames.length + '|' + JSON.stringify(S.flameKind || {});
   if(!changed('flameGrid', key) && !force) return;
   const box = $('flameGrid');
   if(!box) return;
@@ -5540,28 +5706,37 @@ function renderFlameGrid(force){
     const own = S.flames.indexOf(f.id) >= 0;
     const seen = S.seenFlames.indexOf(f.id) >= 0;
     const known = own || seen;
+    const split = own && isSplitFlame(f.id);
+    const eff = split ? 0.1 : 1;
     return '<div class="flame ' + (own ? 'owned' : '') + (known ? '' : ' locked') + '">' +
       '<span class="orb" style="background:radial-gradient(circle at 50% 62%,' + (known ? '#fff8e0 0%,' : '#383330 0%,') + (known ? f.color : '#4a433f') + ' 45%,rgba(0,0,0,.55) 100%);color:' + (known ? f.color : '#4a433f') + '"></span>' +
       '<div style="min-width:0;flex:1">' +
-        '<div class="nm">' + (known ? esc(f.name) : '？？？') + '</div>' +
-        '<div class="rk">第 <b>' + f.rank + '</b> 位 · ' + (own ? '已收服' : (seen ? '图鉴已录' : '未现世')) + '</div>' +
-        '<div class="tagline">' + (known ? ('战力 +' + Math.round(f.power * 100) + '% · 斗气 +' + Math.round(f.qi * 100) + '%') : '—') + '</div>' +
+        '<div class="nm">' + (known ? esc(f.name) : '？？？') + (own ? '<span class="fsrc ' + (split ? 'split' : 'origin') + '">' + (split ? '分焰' : '本源') + '</span>' : '') + '</div>' +
+        '<div class="rk">' + (known ? '<span class="fstar">' + '★'.repeat(f.star || 0) + '</span> · ' : '') + '第 <b>' + f.rank + '</b> 位 · ' + (own ? (split ? '分焰继承' : '本源') : (seen ? '图鉴已录' : '未现世')) + '</div>' +
+        '<div class="tagline">' + (known ? ('战力 +' + Math.round(f.power * 100 * eff) + '% · 斗气 +' + Math.round(f.qi * 100 * eff) + '% · 火种 +' + Math.round(f.wick * 100 * eff) + '% · 药材 +' + Math.round(f.herb * 100 * eff) + '%') : '—') + '</div>' +
+        (known && f.specialName ? '<div class="fspecial ' + ((own && !split) ? 'on' : '') + '">' + esc(f.specialName) + '：' + esc(f.specialDesc) + ((own && !split) ? '' : (own ? '（分焰无效）' : '（收服本源后生效）')) + '</div>' : '') +
       '</div>' +
     '</div>';
   }).join('');
 }
 function renderFlameSummary(){
   const b = bonuses();
+  const tier = furnaceTierIndex();
+  const stars = furnaceStarTotal();
+  const starText = Number.isInteger(stars) ? String(stars) : stars.toFixed(1);
   if($('furnaceTier')) $('furnaceTier').textContent = furnaceName();
+  if($('furnaceStars')) $('furnaceStars').textContent = starText + ' ★';
+  if($('furnaceNext')) $('furnaceNext').textContent = furnaceNextText();
+  if($('furnacePowBonus')) $('furnacePowBonus').textContent = '+' + Math.round(tier * 6) + '%';
+  if($('furnaceQiBonus')) $('furnaceQiBonus').textContent = '+' + Math.round(tier * 5) + '%';
   if($('furnaceDesc')) $('furnaceDesc').textContent =
-    '焚诀以异火为薪。已收 ' + S.flames.length + ' 种，品阶越高，战力与斗气加成越盛。' +
+    '焚诀以异火为薪。已收 ' + S.flames.length + ' 种，当前异火总星级 ' + starText + '，品阶越高，战力与斗气加成越盛。' +
     (!lotusUnlocked() ? '再收一种异火，便可尝试佛怒火莲。' : '');
   if($('flameFill')) $('flameFill').style.width = (S.flames.length / FLAME_TOTAL * 100).toFixed(1) + '%';
   if($('flameCount')) $('flameCount').textContent = '异火 ' + S.flames.length + ' / ' + FLAME_TOTAL;
-  if($('flameBonus')) $('flameBonus').textContent = '战力 +' + Math.round((b.fPow + b.fcPow + (furnaceTierIndex() * 0.06)) * 100) + '%';
   if($('flameRunBonus')){
     let wickSum = 0;
-    S.flames.forEach(function(id){ const f = FLAME_BY_ID[id]; if(f) wickSum += f.wick; });
+    S.flames.forEach(function(id){ const f = FLAME_BY_ID[id]; if(f) wickSum += f.wick * flameStatMult(id); });
     $('flameRunBonus').innerHTML = '本世异火属性加成：战力 <b class="green">+' + Math.round((b.fPow + b.fcPow) * 100) + '%</b> · 斗气 <b class="green">+' +
       Math.round(b.fQi * 100) + '%</b> · 药材 <b class="green">+' + Math.round(b.fHerb * 100) + '%</b> · 火种上限 <b class="green">+' +
       Math.round(wickSum * 100) + '%</b>';
@@ -5615,7 +5790,7 @@ function renderFireCult(){
       '</div>'
     );
   });
-  box.innerHTML = '<div class="hint" style="margin-bottom:8px">异火淬体，五道修炼各自独立；火莲与闭关需先解锁对应功能。</div>' + rows.join('');
+  box.innerHTML = '<div class="hint" style="margin-bottom:8px">消耗斗气进行异火修炼；火莲修炼与闭关修炼需要先解锁对应功能。</div>' + rows.join('');
 }
 function renderDiyan(){
   const box = $('diyanBody');
@@ -5653,7 +5828,7 @@ function pillEffectText(p){
   return '剧情道具：' + (node ? '「' + node.title + '」所需' : '推进剧情');
 }
 function renderRecipes(force){
-  const key = S.alchemyLevel + '|' + S.flames.length + '|' + (hasTree('alch1') ? 1 : 0) + '|' + S.level + '|' + S.mode + '|' + S.region + '|' + Math.floor(Math.log10(Math.max(1, herbPerSec())) * 10);
+  const key = S.alchemyLevel + '|' + flameCountWeight() + '|' + (hasTree('alch1') ? 1 : 0) + '|' + S.level + '|' + S.mode + '|' + S.region + '|' + Math.floor(Math.log10(Math.max(1, herbPerSec())) * 10);
   if(!changed('recipes', key) && !force) return;
   const box = $('recipeList');
   if(!box) return;
@@ -5797,7 +5972,7 @@ function renderAlchemyHead(){
   if($('alchExpFill')) $('alchExpFill').style.width = lv >= 9 ? '100%' : (clamp((exp - prev) / Math.max(1, next - prev), 0, 1) * 100).toFixed(1) + '%';
   if($('alchHerb')) $('alchHerb').textContent = fmt(S.herbs);
   if($('alchCore')) $('alchCore').textContent = fmt(S.cores);
-  if($('alchBonus')) $('alchBonus').innerHTML = '异火助力：成丹率 <b class="gold">+' + Math.round(Math.min(0.18, S.flames.length * 0.02) * 100) + '%</b>' +
+  if($('alchBonus')) $('alchBonus').innerHTML = '异火助力：成丹率 <b class="gold">+' + Math.round(Math.min(0.18, flameCountWeight() * 0.02) * 100) + '%</b>' +
     (hasTree('alch1') ? ' · 丹道传承 <b class="green">+5%</b>' : '') +
     ' · 炼制间隔 <b class="green">1.5 秒</b>（自动炼丹同）' +
     ' · 炼丹有失败之险，失败损失材料' + (hasTree('refund1') ? '（丹炉回火返还四成）' : '') + '。';
@@ -5922,16 +6097,19 @@ function showFlame(id){
   if(!f) return;
   if(S.seenFlames.indexOf(id) < 0){ toast('尚未收录，收服后才能查看介绍'); return; }
   const owned = S.flames.indexOf(id) >= 0;
+  const split = owned && isSplitFlame(id);
   const rec = S.flameFirst && S.flameFirst[id];
   const gotText = rec ? '第 ' + rec.cycle + ' 世 · ' + fmtTime(rec.t) + ' 首次获得' : '某世所得，记忆不详';
   const source = f.story === -1 ? '帝炎融合' : (f.story === -2 ? '奇遇 / 历练' : ('剧情「' + (NODES[f.story] ? NODES[f.story].title : '未知') + '」'));
-  const body = '<p class="hint">异火榜第 ' + f.rank + ' 位 · ' + (owned ? '本世已收服' : '图鉴已收录') + '</p>' +
+  const body = '<p class="hint">异火榜第 ' + f.rank + ' 位 · ' + (owned ? (split ? '本世持有分焰' : '本世持有本源') : '图鉴已收录') + '</p>' +
     '<p class="hint">获得时间：' + gotText + '</p>' +
     '<p class="quote">' + esc(f.desc) + '</p>' +
     '<div class="stat-line"><span class="k">战力加成</span><span class="v">+' + Math.round(f.power * 100) + '%</span></div>' +
     '<div class="stat-line"><span class="k">斗气加成</span><span class="v">+' + Math.round(f.qi * 100) + '%</span></div>' +
     '<div class="stat-line"><span class="k">药材加成</span><span class="v">+' + Math.round(f.herb * 100) + '%</span></div>' +
     '<div class="stat-line"><span class="k">火种上限</span><span class="v">+' + Math.round(f.wick * 100) + '%</span></div>' +
+    (f.specialName ? '<div class="stat-line"><span class="k">本源特效 · ' + esc(f.specialName) + '</span></div>' +
+      '<p class="hint">' + esc(f.specialDesc) + '</p>' : '') +
     '<p class="hint">来源：' + esc(source) + (owned ? ' · 本世属性已生效' : ' · 当前仅图鉴永久加成生效') + '</p>';
   showModal(f.name, body, [{ t:'知道了' }], true);
 }
@@ -5966,8 +6144,6 @@ function showAshRebirth(){
 function showSettings(){
   const b = bonuses();
   const cm = corruptionEnemyMult();
-  const missF = FLAMES.filter(function(f){ return S.seenFlames.indexOf(f.id) < 0; }).map(function(f){ return f.name; });
-  const missP = PARTNERS.filter(function(p){ return S.seenPartners.indexOf(p.id) < 0; }).map(function(p){ return p.name; });
   const storyN = Math.min(Math.max(S.story, (S.stats && S.stats.storyMax) || 0), NODES.length);
   const cryBonus = (hasTree('mem1') ? 35 : 0) + (hasTree('mem2') ? 40 : 0) + 3 * S.repeat.rcry;
   const body =
@@ -5996,8 +6172,6 @@ function showSettings(){
       '<div class="stat-line"><span class="k">伙伴</span><span class="v">' + S.seenPartners.length + ' / ' + PARTNERS.length + '</span></div>' +
       '<div class="stat-line"><span class="k">异火</span><span class="v">' + S.seenFlames.length + ' / ' + FLAME_TOTAL + '</span></div>' +
       '<div class="stat-line"><span class="k">剧情</span><span class="v">' + storyN + ' / ' + NODES.length + '</span></div>' +
-      '<div class="tiny" style="margin-top:6px">未收录伙伴：' + (missP.length ? esc(missP.join('、')) : '无') + '</div>' +
-      '<div class="tiny">未收录异火：' + (missF.length ? esc(missF.join('、')) : '无') + '</div>' +
     '</div>' +
     '<div class="settings-block">' +
       '<div class="settings-h">属性加成</div>' +
@@ -6021,6 +6195,24 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.5</span><span class="cl-date">2026-11-09</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>焚诀界面的异火列表补全火种上限与药材加成显示</li>' +
+            '<li>焚诀等阶改为由异火总星级决定，23 种异火按强度与原著定位评为 2–5 星</li>' +
+            '<li>焚诀界面单独展示等阶、总星级、升阶需求与等阶战力 / 斗气加成</li>' +
+            '<li>轮回后保留非帝炎异火的分焰；新获得异火为本源，可覆盖分焰</li>' +
+            '<li>分焰提供 10% 属性加成，招式与概率类加成减半，并按星级提供较低焚诀进度</li>' +
+            '<li>「火种余烬」价格降至 320 火晶，改为携带异火本源（包括帝炎）</li>' +
+            '<li>战力优势的胜率曲线调整：1.5 倍战力 90%，2 倍及以上必定胜利；剧情首关显示为 “-”</li>' +
+            '<li>「减料成丹」的减半改为在基础成丹率封顶前计算，最终成功率可高于 50%</li>' +
+            '<li>青莲地心火本源特效「莲心淬炼」：剧情丹与突破丹药材消耗 -20%</li>' +
+            '<li>陨落心炎本源特效「心火自燃」：每秒获得当前境界所需斗气的万分之五，不计入挂机收益且受暗红 / 灰烬衰减</li>' +
+            '<li>斗气栏新增心火自燃标记，悬停可查看效果与当前斗气获取</li>' +
+            '<li>图鉴只显示本源特效内容，不再标注当前周目是否生效；设置移除未收集清单</li>' +
+            '<li>轮回记忆一、二价格各降低 100 火晶；轮回后清空「上次炼制」</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.4</span><span class="cl-date">2026-11-08</span></summary>' +
           '<ul class="cl-list">' +
             '<li>好感送礼的魔核需求改为按药材成本比例计算</li>' +
@@ -6260,6 +6452,7 @@ async function handleSetting(act){
       if(!Array.isArray(o.flames)) o.flames = [];
       if(!Array.isArray(o.partners)) o.partners = ['yaolao'];
       if(!Array.isArray(o.seenFlames)) o.seenFlames = [];
+    normalizeFlameSources(o);
     if(!o.flameFirst || typeof o.flameFirst !== 'object') o.flameFirst = {};
       if(!Array.isArray(o.seenPartners)) o.seenPartners = ['yaolao'];
     if(!Array.isArray(o.milestones)) o.milestones = [];
