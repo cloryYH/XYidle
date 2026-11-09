@@ -4675,18 +4675,25 @@ const SAVE_KEY_NAMES = [
   'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text'
 ];
 const SAVE_ALPHA = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const SAVE_KEY_ENC = {}, SAVE_KEY_DEC = {};
-(function buildSaveKeyMap(){
-  const seen = {};
-  SAVE_KEY_NAMES.forEach(function(k){
+function buildSaveKeyMap(names){
+  const enc = {}, dec = {}, seen = {};
+  names.forEach(function(k){
     if(seen[k]) return;
     seen[k] = true;
     const i = Object.keys(seen).length - 1;
     const short = i < 62 ? SAVE_ALPHA[i] : SAVE_ALPHA[Math.floor(i / 62) - 1] + SAVE_ALPHA[i % 62];
-    SAVE_KEY_ENC[k] = short;
-    SAVE_KEY_DEC[short] = k;
+    enc[k] = short;
+    dec[short] = k;
   });
-})();
+  return { enc: enc, dec: dec };
+}
+const SAVE_KEY_MAP = buildSaveKeyMap(SAVE_KEY_NAMES);
+const SAVE_KEY_ENC = SAVE_KEY_MAP.enc, SAVE_KEY_DEC = SAVE_KEY_MAP.dec;
+// v0.2.5 没有 pillThreshold；v0.2.4 还没有 splitFlames / flameKind。
+const SAVE_KEY_NAMES_V025 = SAVE_KEY_NAMES.filter(function(k){ return k !== 'pillThreshold'; });
+const SAVE_KEY_NAMES_V024 = SAVE_KEY_NAMES_V025.filter(function(k){ return k !== 'splitFlames' && k !== 'flameKind'; });
+const SAVE_KEY_MAP_V025 = buildSaveKeyMap(SAVE_KEY_NAMES_V025);
+const SAVE_KEY_MAP_V024 = buildSaveKeyMap(SAVE_KEY_NAMES_V024);
 const FLAME_INDEX = {}, PARTNER_INDEX = {}, PILL_INDEX = {};
 FLAMES.forEach(function(f, i){ FLAME_INDEX[f.id] = i; });
 PARTNERS.forEach(function(p, i){ PARTNER_INDEX[p.id] = i; });
@@ -4706,11 +4713,11 @@ function saveEncodeIdMap(obj, table, encodeValue){
   }
   return out;
 }
-function saveDecodeIdMap(obj, list, decodeValue){
+function saveDecodeIdMap(obj, list, decodeValue, decMap){
   const out = {};
   for(const k in obj){
     const id = (typeof list[k] === 'object' && list[k]) ? list[k].id : k;
-    out[id] = decodeValue ? saveDecodeObject(obj[k]) : obj[k];
+    out[id] = decodeValue ? saveDecodeObject(obj[k], decMap) : obj[k];
   }
   return out;
 }
@@ -4721,11 +4728,12 @@ function saveEncodeObject(o){
   }
   return out;
 }
-function saveDecodeObject(o){
+function saveDecodeObject(o, decMap){
+  const map = decMap || SAVE_KEY_DEC;
   const out = {};
   for(const k in o){
-    const key = saveLongKey(k);
-    out[key] = saveDecodeValue(key, o[k]);
+    const key = map[k] || (k.charAt(0) === '~' ? k.slice(1) : k);
+    out[key] = saveDecodeValue(key, o[k], map);
   }
   return out;
 }
@@ -4749,18 +4757,18 @@ function saveEncodeValue(key, v){
   if(typeof v === 'object') return saveEncodeObject(v);
   return v;
 }
-function saveDecodeValue(key, v){
+function saveDecodeValue(key, v, decMap){
   if(v === null || v === undefined) return v;
   if(key === 'flames' || key === 'seenFlames') return v.map(function(id){ return saveDecodeId(id, FLAMES); });
   if(key === 'splitFlames') return v.map(function(id){ return saveDecodeId(id, FLAMES); });
-  if(key === 'flameKind') return saveDecodeIdMap(v, FLAMES);
+  if(key === 'flameKind') return saveDecodeIdMap(v, FLAMES, false, decMap);
   if(key === 'partners' || key === 'seenPartners') return v.map(function(id){ return saveDecodeId(id, PARTNERS); });
   if(key === 'lastPillId' || key === 'craftId' || key === 'pillId') return saveDecodeId(v, PILLS);
   if(key === 'carry') return saveDecodeId(v, FLAMES);
   if(key === 'pills' && typeof v !== 'object') return v;
-  if(key === 'pills' || key === 'affinity') return saveDecodeIdMap(v, key === 'pills' ? PILLS : PARTNERS);
-  if(key === 'craftFailStreak') return saveDecodeIdMap(v, PILLS);
-  if(key === 'flameFirst') return saveDecodeIdMap(v, FLAMES, true);
+  if(key === 'pills' || key === 'affinity') return saveDecodeIdMap(v, key === 'pills' ? PILLS : PARTNERS, false, decMap);
+  if(key === 'craftFailStreak') return saveDecodeIdMap(v, PILLS, false, decMap);
+  if(key === 'flameFirst') return saveDecodeIdMap(v, FLAMES, true, decMap);
   if(key === 'storyCrafted'){
     const out = {};
     v.forEach(function(id){ out[saveDecodeId(id, PILLS)] = true; });
@@ -4771,8 +4779,8 @@ function saveDecodeValue(key, v){
     v.forEach(function(id){ out[id] = true; });
     return out;
   }
-  if(Array.isArray(v)) return v.map(function(x){ return x && typeof x === 'object' ? saveDecodeObject(x) : x; });
-  if(typeof v === 'object') return saveDecodeObject(v);
+  if(Array.isArray(v)) return v.map(function(x){ return x && typeof x === 'object' ? saveDecodeObject(x, decMap) : x; });
+  if(typeof v === 'object') return saveDecodeObject(v, decMap);
   return v;
 }
 const BASE85_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#';
@@ -4857,11 +4865,41 @@ async function exportSaveText(){
   const z = await deflateRawBytes(bytes);
   return z ? ('XYE2:' + base85Encode(z)) : ('XYE0:' + b64UrlEncode(new TextEncoder().encode(raw)));
 }
+function isValidDecodedSave(o){
+  if(!o || typeof o !== 'object' || Array.isArray(o)) return false;
+  if(!Number.isFinite(o.version) || o.version < 1 || o.version > 3) return false;
+  if(!Array.isArray(o.flames) || !Array.isArray(o.seenFlames)) return false;
+  if(!Array.isArray(o.partners) || !Array.isArray(o.seenPartners)) return false;
+  if(!Number.isFinite(o.level) || o.level < 0 || o.level > MAX_LEVEL) return false;
+  if(!Number.isFinite(o.story) || o.story < 0 || o.story > NODES.length) return false;
+  if(o.pillThreshold !== undefined) return false;
+  if(o.pills && (typeof o.pills !== 'object' || Array.isArray(o.pills))) return false;
+  if(o.auto && (typeof o.auto !== 'object' || Array.isArray(o.auto))) return false;
+  if(o.settings && (typeof o.settings !== 'object' || Array.isArray(o.settings))) return false;
+  if(o.settings && o.settings.pillThreshold !== undefined) return false;
+  if(o.merchant && (typeof o.merchant !== 'object' || Array.isArray(o.merchant))) return false;
+  return true;
+}
+function decodeCompactSaveObject(rawObj){
+  const rawCount = Object.keys(rawObj || {}).length;
+  const candidates = rawCount <= 69
+    ? [SAVE_KEY_MAP_V024, SAVE_KEY_MAP_V025, SAVE_KEY_MAP]
+    : [SAVE_KEY_MAP, SAVE_KEY_MAP_V025, SAVE_KEY_MAP_V024];
+  let lastErr = null;
+  for(let i = 0; i < candidates.length; i++){
+    try{
+      const decoded = saveDecodeObject(rawObj, candidates[i].dec);
+      if(isValidDecodedSave(decoded)) return decoded;
+      lastErr = new Error('存档字段结构不匹配');
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('存档格式无法识别');
+}
 async function decodeSaveText(text){
   const t = String(text || '').trim();
   if(t.indexOf('XYE2:') === 0){
     const raw = await inflateRawBytes(base85Decode(t.slice(5)));
-    return saveDecodeObject(JSON.parse(new TextDecoder().decode(raw)));
+    return decodeCompactSaveObject(JSON.parse(new TextDecoder().decode(raw)));
   }
   if(t.indexOf('XYE1:') === 0){
     const raw = await inflateRawBytes(b64ToBytes(t.slice(5)));
@@ -6259,6 +6297,7 @@ function showSettings(){
             '<li>青莲地心火「莲心淬炼」额外使剧情丹与突破丹的魔核消耗 -20%</li>' +
             '<li>骨灵冷火本源特效「森白传承」：修为丹效果 +10%，丹成气生效果 +50%</li>' +
             '<li>挂机栏新增自动服丹阈值输入，默认 80%</li>' +
+            '<li>修复 v0.2.4 / v0.2.5 的 XYE2 存档因短键表变更而无法导入的问题，自动识别旧键表</li>' +
             '<li>低阶魔兽奇遇的魔核收益略微提高</li>' +
           '</ul>' +
         '</details>' +
