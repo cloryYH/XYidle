@@ -915,7 +915,7 @@
               <div class="rate-cell"><div class="k">斗气</div><div class="v" id="idleQi">+0/秒</div></div>
               <div class="rate-cell"><div class="k">药材</div><div class="v" id="idleHerb">+0/秒</div></div>
               <div class="rate-cell"><div class="k">魔核</div><div class="v" id="idleCore">+0/秒</div></div>
-              <div class="rate-cell"><div class="k">效率</div><div class="v" id="idleKill">--</div></div>
+              <div class="rate-cell"><div class="k">奇遇频率</div><div class="v" id="idleKill">--</div></div>
             </div>
             <div class="hint" id="idleNote" style="margin-top:8px"></div>
             <div class="switch" style="margin-top:6px">
@@ -1198,7 +1198,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.6';
+const GAME_VERSION = 'v0.2.7';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1242,54 +1242,54 @@ const MAX_LEVEL = LEVELS.length - 1;
 
 /* 23 种异火 · 异火榜 */
 const FLAMES = [
-  { id:'diyan', rank:1, star:5, name:'帝炎', color:'#ffd166', power:14.0, qi:3.5, herb:2.5, wick:0.80, story:-1,
+  { id:'diyan', rank:1, star:5, name:'帝炎', color:'#ffd166', power:12.6, qi:3.5, herb:2.5, wick:0.80, story:-1,
     desc:'万火相融而成的万火之帝。非天成，乃万火吞噬归一。' },
-  { id:'xuwu', rank:2, star:5, name:'虚无吞炎', color:'#3a2a52', power:2.8, qi:0.6, herb:0.2, wick:0.10, story:27,
+  { id:'xuwu', rank:2, star:5, name:'虚无吞炎', color:'#3a2a52', power:2.52, qi:0.6, herb:0.2, wick:0.10, story:27,
     desc:'生于虚无，无相可寻。吞天噬地，唯寥寥数物可挡。' },
-  { id:'jinglian', rank:3, star:5, name:'净莲妖火', color:'#ffd9ec', power:2.4, qi:0.5, herb:0.3, wick:0.08, story:23,
+  { id:'jinglian', rank:3, star:5, name:'净莲妖火', color:'#ffd9ec', power:2.16, qi:0.5, herb:0.3, wick:0.08, story:23,
     desc:'乳白莲火，净化万物。沾之丁点，皆归虚无。' },
-  { id:'jindi', rank:4, star:5, name:'金帝焚天炎', color:'#ffc93c', power:2.05, qi:0.45, herb:0.1, wick:0.07, story:20,
+  { id:'jindi', rank:4, star:5, name:'金帝焚天炎', color:'#ffc93c', power:1.85, qi:0.45, herb:0.1, wick:0.07, story:20,
     desc:'古族传承之火，号称连斗气都能燃烧。' },
-  { id:'shengling', rank:5, star:5, name:'生灵之焱', color:'#58d68d', power:1.55, qi:0.4, herb:1.1, wick:0.06, story:-2,
+  { id:'shengling', rank:5, star:5, name:'生灵之焱', color:'#58d68d', power:1.4, qi:0.4, herb:1.1, wick:0.06, story:-2,
     desc:'绿色生命之火。种子投入其中，须臾便可长成药材。' },
-  { id:'bahuang', rank:6, star:4, name:'八荒破灭焱', color:'#4b4458', power:1.75, qi:0.35, herb:0.05, wick:0.06, story:-2,
+  { id:'bahuang', rank:6, star:4, name:'八荒破灭焱', color:'#4b4458', power:1.58, qi:0.35, herb:0.05, wick:0.06, story:-2,
     desc:'炎族至火，可化百丈火焰双翼，霸道绝伦。' },
-  { id:'jiuyoujin', rank:7, star:4, name:'九幽金祖火', color:'#e0a92e', power:1.6, qi:0.33, herb:0.05, wick:0.05, story:-2,
+  { id:'jiuyoujin', rank:7, star:4, name:'九幽金祖火', color:'#e0a92e', power:1.44, qi:0.33, herb:0.05, wick:0.05, story:-2,
     desc:'九幽地冥族旧物，后归炎族，可与金帝焚天炎抗衡。' },
-  { id:'honglian', rank:8, star:4, name:'红莲业火', color:'#c0392b', power:1.45, qi:0.32, herb:0.08, wick:0.05, story:-2,
+  { id:'honglian', rank:8, star:4, name:'红莲业火', color:'#c0392b', power:1.31, qi:0.32, herb:0.08, wick:0.05, story:-2,
     desc:'深红妖艳，火苗蹿升间自成红莲之状。' },
-  { id:'sanqian', rank:9, star:4, name:'三千焱炎火', color:'#7b4bb7', power:1.3, qi:0.3, herb:0.06, wick:0.05, story:15,
+  { id:'sanqian', rank:9, star:4, name:'三千焱炎火', color:'#7b4bb7', power:1.17, qi:0.3, herb:0.06, wick:0.05, story:15,
     desc:'生于星空，吸星辰之力。得之者号称不死体。' },
-  { id:'jiuyoufeng', rank:10, star:4, name:'九幽风炎', color:'#3d3d4d', power:1.18, qi:0.28, herb:0.05, wick:0.04, story:-2,
+  { id:'jiuyoufeng', rank:10, star:4, name:'九幽风炎', color:'#3d3d4d', power:1.07, qi:0.28, herb:0.05, wick:0.04, story:-2,
     desc:'生于极阴深渊，风声入耳，可乱人心神。' },
-  { id:'guling', rank:11, star:4, name:'骨灵冷火', color:'#e6f2f8', power:1.05, qi:0.26, herb:0.06, wick:0.04, story:17,
+  { id:'guling', rank:11, star:4, name:'骨灵冷火', color:'#e6f2f8', power:0.95, qi:0.26, herb:0.06, wick:0.04, story:17,
     specialName:'森白传承', specialDesc:'持有本源时，修为丹效果 +10%，丹成气生效果 +50%。',
     desc:'极寒与极热相生。百年日月交替，方得一遇。' },
-  { id:'jiulong', rank:12, star:3, name:'九龙雷罡火', color:'#b9c4d0', power:0.95, qi:0.24, herb:0.05, wick:0.04, story:-2,
+  { id:'jiulong', rank:12, star:3, name:'九龙雷罡火', color:'#b9c4d0', power:0.86, qi:0.24, herb:0.05, wick:0.04, story:-2,
     desc:'银色火焰，九条雷龙游走其间，龙威震魂。' },
-  { id:'guiling', rank:13, star:3, name:'龟灵地火', color:'#8b5a2b', power:0.88, qi:0.22, herb:0.07, wick:0.035, story:-2,
+  { id:'guiling', rank:13, star:3, name:'龟灵地火', color:'#8b5a2b', power:0.8, qi:0.22, herb:0.07, wick:0.035, story:-2,
     desc:'状如巨龟，遍体火刺，褐色地火狰狞而厚重。' },
-  { id:'yunluo', rank:14, star:4, name:'陨落心炎', color:'#8fd8e8', power:0.8, qi:0.4, herb:0.05, wick:0.04, story:8,
+  { id:'yunluo', rank:14, star:4, name:'陨落心炎', color:'#8fd8e8', power:0.72, qi:0.4, herb:0.05, wick:0.04, story:8,
     specialName:'心火自燃', specialDesc:'持有本源时，每秒获得当前境界所需斗气的万分之五。',
     desc:'火由心生，淬气炼骨。号称修炼作弊器。' },
-  { id:'haixin', rank:15, star:3, name:'海心焰', color:'#2f6fb8', power:0.72, qi:0.2, herb:0.1, wick:0.035, story:22,
+  { id:'haixin', rank:15, star:3, name:'海心焰', color:'#2f6fb8', power:0.65, qi:0.2, herb:0.1, wick:0.035, story:22,
     desc:'深蓝如海，火焰升腾间涟漪层叠，玄异莫名。' },
-  { id:'huoyun', rank:16, star:3, name:'火云水炎', color:'#7a5bd6', power:0.65, qi:0.18, herb:0.06, wick:0.03, story:-2,
+  { id:'huoyun', rank:16, star:3, name:'火云水炎', color:'#7a5bd6', power:0.59, qi:0.18, herb:0.06, wick:0.03, story:-2,
     desc:'炎族火耀长老之物，原著着墨极少，火性难测。' },
-  { id:'huoshan', rank:17, star:3, name:'火山石焰', color:'#a03a2a', power:0.58, qi:0.16, herb:0.05, wick:0.03, story:-2,
+  { id:'huoshan', rank:17, star:3, name:'火山石焰', color:'#a03a2a', power:0.53, qi:0.16, herb:0.05, wick:0.03, story:-2,
     desc:'暗红熔岩之火，与九幽金祖火相融可成新火。' },
-  { id:'fengnu', rank:18, star:3, name:'风怒龙炎', color:'#c9a227', power:0.52, qi:0.15, herb:0.05, wick:0.03, story:-2,
+  { id:'fengnu', rank:18, star:3, name:'风怒龙炎', color:'#c9a227', power:0.47, qi:0.15, herb:0.05, wick:0.03, story:-2,
     desc:'生于沙漠龙卷风眼，风火相济，高达数百米。' },
-  { id:'qinglian', rank:19, star:3, name:'青莲地心火', color:'#2fc7b0', power:0.46, qi:0.22, herb:0.12, wick:0.04, story:4,
+  { id:'qinglian', rank:19, star:3, name:'青莲地心火', color:'#2fc7b0', power:0.42, qi:0.22, herb:0.12, wick:0.04, story:4,
     specialName:'莲心淬炼', specialDesc:'持有本源时，炼制剧情丹与突破丹的药材、魔核消耗 -20%。',
     desc:'地心熔岩千年成莲，莲心一簇青火，可引火山喷发。' },
-  { id:'youming', rank:20, star:2, name:'幽冥毒火', color:'#6fbf3f', power:0.42, qi:0.14, herb:0.08, wick:0.025, story:-2,
+  { id:'youming', rank:20, star:2, name:'幽冥毒火', color:'#6fbf3f', power:0.38, qi:0.14, herb:0.08, wick:0.025, story:-2,
     desc:'毒泽瘴气千万年熏养，色绿如鬼火，沾之即中毒。' },
-  { id:'yinyang', rank:21, star:2, name:'阴阳双炎', color:'#cfd6e0', power:0.38, qi:0.13, herb:0.05, wick:0.025, story:-2,
+  { id:'yinyang', rank:21, star:2, name:'阴阳双炎', color:'#cfd6e0', power:0.35, qi:0.13, herb:0.05, wick:0.025, story:-2,
     desc:'黑白双火如阴阳双鱼，阳火救人，阴火杀人。' },
-  { id:'wanshou', rank:22, star:2, name:'万兽灵火', color:'#d06a3a', power:0.34, qi:0.12, herb:0.06, wick:0.025, story:-2,
+  { id:'wanshou', rank:22, star:2, name:'万兽灵火', color:'#d06a3a', power:0.31, qi:0.12, herb:0.06, wick:0.025, story:-2,
     desc:'原著仅留其名。传闻万兽之魂凝于火中，咆哮不散。' },
-  { id:'xuanhuang', rank:23, star:2, name:'玄黄炎', color:'#b8860b', power:0.3, qi:0.11, herb:0.05, wick:0.025, story:-2,
+  { id:'xuanhuang', rank:23, star:2, name:'玄黄炎', color:'#b8860b', power:0.27, qi:0.11, herb:0.05, wick:0.025, story:-2,
     desc:'古帝洞府异火广场所见，深黄古朴，来历成谜。' }
 ];
 const FLAME_BY_ID = {};
@@ -1409,7 +1409,7 @@ const NODES = [
   { title:'双帝之战', place:'中州 · 黑云之上', lvl:91, mult:3.2, req:90, region:-1,
     desc:'魂天帝立于黑云之上，魂族大军遮天蔽日。你掌心万火归位，帝炎第一次完整现世。',
     win:'帝炎焚天，魂天帝被生生封印。斗气大陆重归安宁，而你的故事，才刚刚开始。',
-    partners:[], flame:'xuwu', key:'puti_dahuan', reward:{qi:0, herb:0, core:0, wick:0} }
+    partners:[], flame:null, key:'puti_dahuan', reward:{qi:0, herb:0, core:0, wick:0} }
 ];
 
 // 平衡补丁：斗尊/斗圣段节点整体下调，避免后期长期卡在剧情墙
@@ -1566,6 +1566,12 @@ const EXTRA_STORY = [
       desc:'加玛帝国炼药师大会，满城药香。萧炎以一枚凝火丹入场，丹成时火纹三转，满座皆惊。',
       win:'凝火丹成，萧炎夺得大会魁首，也拿到了进入下一层的资格。',
       partners:[], flame:null, key:'ninghuo', reward:{qi:1.4, herb:2.2, core:1.2, wick:300} } },
+  { after:14, detail:
+    `<p>风尊者之事传遍中州，丹塔的使者循着消息找到萧炎，递来一张丹会请帖。使者言辞客气，身后却有几道魂殿暗线若隐若现。</p><p>萧炎收下请帖，在城外截住尾随者。魂殿的人退得很快，只留下一句：“丹会之上，自有人取你性命。”</p>`,
+    node:{ title:'中州 · 丹塔来使', place:'中州 · 丹塔外城', lvl:62, mult:1.2, req:62, region:6,
+      desc:'风尊者之事传开，丹塔使者送来丹会请帖；魂殿暗线一路尾随，丹会尚未开始，杀机已至。',
+      win:'你收下请帖，顺手斩断尾随的魂殿暗线。丹塔丹会与三千焱炎火的消息，终于有了着落。',
+      partners:[], flame:null, key:null, reward:{qi:2.1, herb:2.6, core:2.4, wick:480} } },
   { after:16, detail:
     `<p>复活药老所需的材料差最后一味血精妖果。萧炎赶到黑皇城拍卖会时，魂殿与黑皇宗已经把价格抬上了天。</p><p>拍卖槌落，血精妖果到手。回程路上魂殿伏杀，被他反手截下；拍卖行的人情，也算记下了。</p>`,
     node:{ title:'黑角域 · 拍卖会', place:'黑角域 · 黑皇城', lvl:64, mult:0.75, req:66, region:-1, side:true,
@@ -1626,6 +1632,11 @@ function mapStoryOrder3(v){
   v = v | 0;
   // 天墓之后新增「葬天山脉」：旧顺序中完成古帝洞府及之后的进度 +1
   return clamp(v >= 32 ? v + 1 : v, 0, NODES.length);
+}
+function mapStoryOrder4(v){
+  v = v | 0;
+  // 中州新增「丹塔来使」：旧顺序中完成丹会及之后的进度 +1
+  return clamp(v >= 19 ? v + 1 : v, 0, NODES.length);
 }
 function storyDone(title){
   const idx = NODES.findIndex(function(n){ return n.title === title; });
@@ -1765,6 +1776,7 @@ const TREE = [
   { id:'timecry',name:'时空结晶',    cost:320, req:[],         desc:'轮回时补充一枚时空结晶（最多 1 枚），可在丹囊燃烧' },
   { id:'timecry2',name:'时空延展',   cost:580, req:['timecry'], desc:'时空结晶持续时间 ×2（15 → 30 分钟）' },
   { id:'start1',name:'火种余烬',     cost:320, req:[],         desc:'转生时携带一种异火本源（包括帝炎）' },
+  { id:'splitorigin',name:'余烬回源', cost:400, req:[],        desc:'轮回开始后每 15 分钟，随机一种分焰成长为本源（受时空结晶加速，奇遇异火优先）' },
   { id:'ash1',  name:'不灭余烬',     cost:720, req:[],         desc:'灰烬惩罚由 -80% 降至 -50%' },
   { id:'fail1', name:'败而不馁·一',  cost:180, req:[],          desc:'战斗失败扣除的火种时间 -30%' },
   { id:'fail2', name:'败而不馁·二',  cost:460, req:['fail1'],   desc:'失败火种损失再 -25%（合计 -55%）' },
@@ -1828,6 +1840,7 @@ const PHASE_1 = 0.625;           // 橙红 → 暗红
 const PHASE_2 = 0.875;           // 暗红 → 灰烬
 const CRAFT_CD = 1.5;            // 炼丹冷却
 const STORY_FAIL_CD = 12;        // 剧情战斗失败调息
+const FINAL_BOSS_POWER_MULT = 2.9; // 双帝之战魂天帝单独增幅
 
 function rnd(){ return Math.random(); }
 function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
@@ -1914,10 +1927,12 @@ function levelTime(L){ return 25 + 4.6 * L + 0.028 * L * L; }
 const BASE_ADV_FACTOR = 0.985 * Math.pow(15, 0.35) * 1.65;
 function stdHerbRate(L){ return herbBase(L) * 1.8 * BASE_ADV_FACTOR; }
 function stdCoreRate(L){ return coreBase(L) * 1.5 * BASE_ADV_FACTOR; }
+function stdCoreCostRate(L){ return coreCostBase(L) * 1.5 * BASE_ADV_FACTOR; }
 function cultBase(L){ return reqCultBase(L) / levelTime(L); }
 function powerBase(L){ return 10 * Math.pow(1.30, L); }
 function herbBase(L){ return 0.35 + 0.15 * Math.pow(1.11, L); }
-function coreBase(L){ return 0.01 + 0.005 * Math.pow(1.11, L); }
+function coreBase(L){ return 0.01 + 0.005 * Math.pow(1.13, L); }
+function coreCostBase(L){ return 0.01 + 0.005 * Math.pow(1.12, L); }
 function corruptionEnemyMult(){ return 1 + 0.20 * clamp(S.corruption || 0, 0, 5); }
 function nextCorruptionEnemyMult(){ return 1 + 0.20 * clamp(S.nextCorruption || 1, 1, 5); }
 function enemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMult(); }
@@ -1944,10 +1959,6 @@ function battleOddsLabel(w){
   if(w >= 0.40) return '势均力敌';
   if(w >= 0.20) return '凶多吉少';
   return '九死一生';
-}
-function killTime(P, E){
-  // 15 倍战力时约 0.667 秒/只，即 1.5 只/秒封顶
-  return clamp(5 * Math.pow(E / P, 0.744), 2 / 3, 40);
 }
 
 /* ---------- 状态 ---------- */
@@ -1997,10 +2008,11 @@ function defaultState(){
     soulHuntDefeated: false,
     flameMaxBonus: 0,
     flameIntel: 0,
+    splitOriginTimer: 0,
     control: 0,
     rebirthUnlocked: false,
     story: 0,
-    storyOrder: 4,
+    storyOrder: 5,
     ashStrikeUsed: false,
     storyCdMax: 0,
     storyCdFail: false,
@@ -2125,6 +2137,35 @@ function furnaceTierIndex(){
   }
   return tier;
 }
+function awakenRandomSplitFlame(){
+  const splits = (S.flames || []).filter(function(id){
+    return id !== 'diyan' && flameKindOf(id) === 'split' && FLAME_BY_ID[id];
+  });
+  if(!splits.length) return false;
+  const wild = splits.filter(function(id){ return FLAME_BY_ID[id].story === -2; });
+  const specialStory = splits.filter(function(id){
+    const f = FLAME_BY_ID[id];
+    return f.story >= 0 && !!f.specialName;
+  });
+  const normalStory = splits.filter(function(id){
+    const f = FLAME_BY_ID[id];
+    return f.story >= 0 && !f.specialName;
+  });
+  const pool = wild.length ? wild : (specialStory.length ? specialStory : normalStory);
+  if(!pool.length) return false;
+  const f = FLAME_BY_ID[pickOne(pool)];
+  if(!S.flameKind) S.flameKind = {};
+  const oldMax = calcWickMax();
+  S.flameKind[f.id] = 'origin';
+  const newMax = calcWickMax();
+  S.wickMax = newMax;
+  S.wick = Math.min(newMax, S.wick + Math.max(0, newMax - oldMax));
+  log('轮回火种苏醒，「' + f.name + '」由分焰成长为本源。', 'log-good');
+  renderFlameSummary();
+  renderFlameGrid(true);
+  renderHUD();
+  return true;
+}
 function furnaceName(){ return FURNACE_NAMES[furnaceTierIndex()]; }
 function furnaceNextText(){
   const tier = furnaceTierIndex();
@@ -2155,15 +2196,15 @@ function bonuses(){
   const tHerb = hasTree('herb1') ? 0.30 : 0;
   const rPow = 0.06 * S.repeat.rpow, rQi = 0.05 * S.repeat.rqi, rHerb = 0.05 * S.repeat.rherb;
   const ft = furnaceTierIndex();
-  const fTierPow = 0.06 * ft, fTierQi = 0.05 * ft;
+  const fTierPowMult = 1 + 0.06 * ft, fTierQiMult = 1 + 0.05 * ft;
   const seenPow = 0.06 * S.seenFlames.length + 0.07 * S.seenPartners.length;
   const seenQi = 0.03 * S.seenFlames.length + 0.025 * S.seenPartners.length;
   const fcPow = 0.03 * fireCultLevel('power');
-  const qi = (1 + fQi + pQi + tQi + rQi + fTierQi + seenQi) * pm;
+  const qi = (1 + fQi + pQi + tQi + rQi + seenQi) * fTierQiMult * pm;
   const herb = (1 + fHerb + pHerb + tHerb + rHerb) * pm;
   const core = (1 + (hasTree('core1') ? 0.30 : 0)) * pm;
-  const pow = (1 + fPow + pPow + tPow + rPow + fTierPow + seenPow + fcPow) * pm;
-  return { qi: qi, herb: herb, core: core, power: pow, fPow: fPow, fQi: fQi, fHerb: fHerb, pPow: pPow, tPow: tPow, seenPow: seenPow, fcPow: fcPow };
+  const pow = (1 + fPow + pPow + tPow + rPow + seenPow + fcPow) * fTierPowMult * pm;
+  return { qi: qi, herb: herb, core: core, power: pow, fPow: fPow, fQi: fQi, fHerb: fHerb, pPow: pPow, tPow: tPow, seenPow: seenPow, fcPow: fcPow, fTierPowMult: fTierPowMult, fTierQiMult: fTierQiMult };
 }
 
 function power(){ return powerBase(S.level) * bonuses().power; }
@@ -2195,34 +2236,18 @@ function currentRegion(){
   if(S.region < 0 || S.region >= REGIONS.length) S.region = 0;
   return REGIONS[S.region];
 }
-function regionUnlocked(i){ return i === 0 || S.story > REGIONS[i].unlock; }
-function regionRunFactor(i){
-  const r = REGIONS[i];
-  if(!r) return 0;
-  const P = power();
-  const E = regionEnemyPower(r.lvl, r.mult);
-  const w = winChance(P, E);
-  const eff = 1 / killTime(P, E);
-  const kf = clamp(1 + 0.5 * (eff - 0.2), 0.8, 1.65);
-  return w * kf;
-}
+function regionUnlocked(i){ return i === 0 || S.story >= REGIONS[i].unlock; }
 function bestRegion(){
-  let best = 0, bestScore = -1, fallback = 0, bestW = -1;
-  const cur = (S.region >= 0 && S.region < REGIONS.length) ? S.region : 0;
-  const minFactor = regionRunFactor(cur) * 0.8;
+  let best = -1, fallback = 0, bestW = -1;
   for(let i = 0; i < REGIONS.length; i++){
     if(!regionUnlocked(i)) break;
     const r = REGIONS[i];
     const E = regionEnemyPower(r.lvl, r.mult);
     const w = winChance(power(), E);
-    if(i !== cur && regionRunFactor(i) < minFactor) continue;
     if(w > bestW){ bestW = w; fallback = i; }
-    if(w < 0.42) continue;
-    const adv = clamp(Math.pow(power() / E, 0.35), 0.4, 3);
-    const score = (1 + 1.4 * w * adv) * Math.pow(1.11, r.lvl);
-    if(score > bestScore){ bestScore = score; best = i; }
+    if(w >= 0.42) best = i;
   }
-  return bestScore >= 0 ? best : fallback;
+  return best >= 0 ? best : fallback;
 }
 
 /* ---------- 挂机速率 ---------- */
@@ -2239,10 +2264,10 @@ function exploreStats(){
   const E = regionEnemyPower(r.lvl, r.mult);
   const P = power();
   const w = winChance(P, E);
-  const adv = clamp(Math.pow(P / E, 0.35), 0.4, Math.pow(15, 0.35));
-  const dur = killTime(P, E);
-  const eff = 1 / dur;
-  const killFactor = clamp(1 + 0.5 * (eff - 0.2), 0.8, 1.65);
+  const adv = 1;
+  const dur = 2 / 3;
+  const eff = 1.5;
+  const killFactor = 1;
   const b = bonuses();
   return {
     w: w,
@@ -2303,7 +2328,7 @@ function fireCultCost(id){
   const lv = fireCultLevel(id);
   return {
     qi: Math.round(d.qiBase * Math.pow(d.growth, lv)),
-    core: d.coreFactor ? Math.max(1, Math.round(d.coreFactor * coreBase(S.level))) : 0
+    core: d.coreFactor ? Math.max(1, Math.round(d.coreFactor * coreCostBase(S.level))) : 0
   };
 }
 function upgradeFireCult(id){
@@ -2343,6 +2368,7 @@ function nodeEnemy(n){
   // 中后期剧情战力逐关膨胀，抑制连续过关滚雪球
   if(idx >= 15) E *= Math.pow(1.06, idx - 15);
   if(hasTree('speedfire') && S.story < 3) E *= 0.2;
+  if(n.title === '双帝之战') E *= FINAL_BOSS_POWER_MULT;
   return E;
 }
 function nextNode(){ return S.story < NODES.length ? NODES[S.story] : null; }
@@ -2441,11 +2467,14 @@ function alchRankName(){
 function pillMaterialDiscount(p){
   return (p && (p.type === 'break' || p.type === 'key') && hasOriginFlame('qinglian')) ? 0.8 : 1;
 }
+const BREAK_TIER_COST = {
+  2: 1.00, 3: 1.13, 4: 1.28, 5: 1.45, 6: 1.64, 7: 1.86, 8: 2.12, 9: 2.40
+};
 function pillBaseCost(p){
   const L = S.level;
   const lt = levelTime(L);
   const hb = stdHerbRate(L);
-  const cb = stdCoreRate(L);
+  const cb = stdCoreCostRate(L);
   let cost;
   if(p.type === 'qi'){
     // 修为丹：药材需求 -20%，魔核需求 +40%
@@ -2456,9 +2485,10 @@ function pillBaseCost(p){
     };
   } else if(p.type === 'break'){
     const priceL = (REGIONS[bestGatherRegion()] || REGIONS[0]).lvl;
+    const tierMult = BREAK_TIER_COST[p.tier] || 1;
     cost = {
-      herb: Math.max(1, Math.round(30 * stdHerbRate(priceL))),
-      core: Math.max(1, Math.ceil(10 * stdCoreRate(priceL)))
+      herb: Math.max(1, Math.round(30 * stdHerbRate(priceL) * tierMult)),
+      core: Math.max(1, Math.ceil(8 * stdCoreCostRate(priceL) * tierMult))
     };
   } else {
     // 剧情丹：按“对应剧情节点的境界”固定定价，不随当前收益浮动
@@ -2468,7 +2498,7 @@ function pillBaseCost(p){
     }
     cost = {
       herb: Math.max(1, Math.round(300 * herbBase(R))),
-      core: Math.max(1, Math.round(30 * coreBase(R)))
+      core: Math.max(1, Math.round(30 * coreCostBase(R)))
     };
   }
   if(p.type === 'break' || p.type === 'key'){
@@ -2717,7 +2747,6 @@ function craftResultMsg(p, r){
   } else {
     msg = '丹成！「' + p.name + '」已收入丹囊';
   }
-  if(r.leveled) msg += ' · 炼药术晋为' + alchRankName();
   return msg;
 }
 function craft(id, auto, frugal){
@@ -2778,6 +2807,8 @@ function craft(id, auto, frugal){
     S.alchemyLevel = nl;
     leveled = true;
     log('炼药术精进，晋为' + alchRankName() + '。', 'log-good');
+    toast('炼药师品级提升：' + alchRankName(), true, 3600);
+    if(S.alchemyLevel < 9) toast('现在可以炼制' + CN[S.alchemyLevel + 1] + '品丹药了', true, 3600);
   }
   const result = { ok:true, succ: succ, gain: gain, chance: chance, leveled: leveled, overCap: overCap, refund: refund, frugal: !!frugal };
   if(auto) toast(craftResultMsg(p, result), true, 3600);
@@ -2832,17 +2863,18 @@ function resolveStoryWin(n){
   const gm = timeGainMult();
   const nodeIdx = NODES.indexOf(n);
   const rw = nodeIdx >= 15 ? Math.max(0.5, 1 - 0.05 * (nodeIdx - 15)) : 1;
+  const rewardMult = 2;
   let qGain = 0, hGain = 0, cGain = 0, wGain = 0;
   if(n.reward.qi > 0){
-    qGain = reqCultBase(n.req) * n.reward.qi * 0.28 * 0.6 * rw * gm;
+    qGain = reqCultBase(n.req) * n.reward.qi * 0.28 * 0.6 * rw * gm * rewardMult;
     S.qi += qGain;
   }
-  hGain = 25 * Math.pow(1.11, n.lvl) * n.reward.herb * rw * gm;
-  cGain = (2 + 0.5 * n.lvl) * n.reward.core * rw * gm;
+  hGain = 25 * Math.pow(1.11, n.lvl) * n.reward.herb * rw * gm * rewardMult;
+  cGain = (2 + 0.5 * n.lvl) * n.reward.core * rw * gm * rewardMult;
   S.herbs += hGain;
   S.cores += cGain;
   if(n.reward.wick > 0){
-    wGain = n.reward.wick * 0.15;
+    wGain = n.reward.wick * 0.15 * rewardMult;
     addWick(wGain);
   }
   log('剧情通关奖励：斗气 +' + fmt(qGain) + '、药材 +' + fmt(hGain) + '、魔核 +' + fmt(cGain) + '、火种 +' + fmt(wGain) + ' 秒。', 'log-good');
@@ -2852,11 +2884,9 @@ function resolveStoryWin(n){
   }
   (n.partners || []).forEach(function(pid){ addPartner(pid); });
   if(n.flame) addFlame(n.flame);
-  if(n.region >= 0 && (n.region === S.region || regionRunFactor(n.region) >= regionRunFactor(S.region) * 0.8)){
-    if(S.region !== n.region){
-      S.region = n.region;
-      log('历练区域切换：' + REGIONS[n.region].name + '。', 'log-sys');
-    }
+  if(n.region >= 0 && REGIONS[n.region] && S.region !== n.region){
+    S.region = n.region;
+    log('历练区域切换：' + REGIONS[n.region].name + '。', 'log-sys');
   }
   const prevStory = S.story;
   S.story++;
@@ -3018,7 +3048,7 @@ const BATTLE_TACTICS = [
   { id:'guard', name:'招架', desc:'造成50%伤害，本回合受到伤害 -65%' },
   { id:'pill', name:'服丹', desc:'不攻击，每回合回复5%生命，持续3回合；重复使用只重置持续时间' },
   { id:'focus', name:'蓄势', desc:'不攻击，下回合伤害 ×2' },
-  { id:'backwater', name:'背水', desc:'不攻击，下回合起伤害 ×1.5、受伤 +50%，且无法使用战术' },
+  { id:'backwater', name:'背水', desc:'不攻击，下回合起伤害 ×1.5、受伤 +20%，且无法使用战术' },
   { id:'ignite', name:'引火', desc:'不攻击，本场战斗所有伤害 ×1.3；触发后本场不再出现' },
   { id:'fireArmor', name:'火铠', desc:'不攻击，本场受伤 -10% 且不会被暴击；触发后本场不再出现' }
 ];
@@ -3390,7 +3420,7 @@ function battleApplyAction(b, key){
     const crit = !b.fireArmor && rnd() < 0.15;
     let dmg = Math.max(1, Math.round(e.atk * mult * (0.8 + rnd() * 0.4) * (crit ? 2 : 1) * b.enemyAtkDown * b.enemyRage));
     b.enemyAtkDown = 1;
-    if(backwaterActive) dmg = Math.round(dmg * 1.5);
+    if(backwaterActive) dmg = Math.round(dmg * 1.2);
     if(b.fireArmor) dmg = Math.round(dmg * 0.9);
     let dodged = false;
     if(b.dodge > 0 && rnd() < b.dodge){
@@ -3703,9 +3733,18 @@ function flamePoolMissing(){
     return f.story === -2 && S.seenFlames.indexOf(f.id) < 0;
   });
 }
+function flamePoolLost(){
+  const split = S.splitFlames || [];
+  return FLAMES.filter(function(f){
+    return f.story === -2 &&
+      S.seenFlames.indexOf(f.id) >= 0 &&
+      S.flames.indexOf(f.id) < 0 &&
+      split.indexOf(f.id) < 0;
+  });
+}
 function flamePoolSeenMissing(){
   return FLAMES.filter(function(f){
-    return f.story === -2 && S.seenFlames.indexOf(f.id) >= 0 && flameKindOf(f.id) !== 'origin';
+    return f.story === -2 && S.seenFlames.indexOf(f.id) >= 0 && flameKindOf(f.id) === 'split';
   });
 }
 function realmFlameChanceMult(){
@@ -3737,6 +3776,14 @@ function doEvent(){
       const miss = flamePoolMissing();
       if(miss.length){
         const f = pickOne(miss);
+        markEventSeen('wildFlame');
+        addFlame(f.id);
+        S._flamePity = 0;
+        return;
+      }
+      const lost = flamePoolLost();
+      if(lost.length){
+        const f = pickOne(lost);
         markEventSeen('wildFlame');
         addFlame(f.id);
         S._flamePity = 0;
@@ -4144,14 +4191,15 @@ function startTravelerReturn(){
   S.traveler.returnCount = 0;
   S.limitedCd = 180;
   S.gifts = (S.gifts || 0) + 1;
-  const qiGain = reqNeed(S.level) * 0.40;
+  const rate = LEVELS[S.level].tier <= 7 ? 1.0 : 0.6;
+  const qiGain = reqNeed(S.level) * rate;
   S.qi += qiGain;
   log('旅人的回报：获得小礼物 +1、上古残卷斗气 +' + fmt(qiGain) + '。', 'log-good');
   save();
   TRAVELER_RETURN_OPEN = true;
   showModal('旅人的回报', '<p>曾经被你救治的旅人循着消息找来，放下一只小包裹。</p>' +
     '<div class="quote">“救命之恩，无以为报。这点东西，请你收下。”</div>' +
-    '<p>获得：小礼物 ×1、上古残卷（当前境界所需斗气 +40%）。</p>', [{ t:'收下' }]);
+    '<p>获得：小礼物 ×1、上古残卷（当前境界所需斗气 +' + Math.round(rate * 100) + '%）。</p>', [{ t:'收下' }]);
 }
 function herbGuardChoose(choice, timedOut){
   if(!HERB_GUARD) return;
@@ -4450,6 +4498,7 @@ function rebirth(){
   S.alchemyLevel = 1 + (hasTree('alch1') ? 2 : 0);
   S.alchemyExp = ALCH_T[S.alchemyLevel] || 0;
   S.fireCult = { power:0, alchemy:0, pill:0, lotus:0, seclusion:0 };
+  S.splitOriginTimer = 0;
   S.alchemyUpgrade = { yield:0, core:0, herb:0, frugal:0, coreOn:false, herbOn:false };
   S.merchant = { initialized:false, slots:[null,null], mysteryUsed:{ intel:false, crystal:false, wick:false }, mysteryCount:0 };
   S.traveler = { done:false, rescued:false, returnCount:0, returnDone:false };
@@ -4481,14 +4530,45 @@ function rebirth(){
 }
 
 /* ---------- 帝炎 ---------- */
+function openDiyanFusion(){
+  if(S.flames.indexOf('diyan') >= 0){ toast('帝炎已成'); return; }
+  const currentFlames = S.flames.filter(function(id){ return id !== 'diyan'; }).length;
+  if(currentFlames < FLAME_TOTAL - 2){
+    toast('本世异火未齐（' + currentFlames + '/' + (FLAME_TOTAL - 2) + '）');
+    return;
+  }
+  showModal('万火归一',
+    '<p>你立于异火广场，万火在掌中奔涌。二十二道火光冲天而起，整片广场化作一片灼目的火海。</p>' +
+    '<p>就在帝炎将成的刹那，魂天帝身侧的虚无吞炎骤然一颤。它像是听见了某种古老的召唤，挣脱魂链，化作一道无色无相的暗流，掠过战场，投入火海之中。</p>' +
+    '<p>虚无吞炎没有挣扎，也没有被炼化。它主动散开，成为火焰洪流的一部分，与其余二十一道异火一同缠上你的指尖。</p>' +
+    '<p>万火归位，帝炎成形。</p>',
+    [
+      { t:'再等等', cls:'ghost' },
+      { t:'万火归一', fn:function(){
+        closeModal();
+        const r = fuseDiyan();
+        renderAll(true);
+        save();
+        if(r.ok) toast('帝炎已成');
+        else if(r.msg) toast(r.msg);
+      } }
+    ]);
+}
 function fuseDiyan(){
   if(S.flames.indexOf('diyan') >= 0) return { ok:false, msg:'帝炎已成' };
-  if(S.seenFlames.length < FLAME_TOTAL - 2) return { ok:false, msg:'异火图鉴未齐（' + S.seenFlames.length + '/' + (FLAME_TOTAL - 2) + '，虚无吞炎尚在魂天帝手中）' };
+  const currentFlames = S.flames.filter(function(id){ return id !== 'diyan'; }).length;
+  if(currentFlames < FLAME_TOTAL - 2) return { ok:false, msg:'本世异火未齐（' + currentFlames + '/' + (FLAME_TOTAL - 2) + '，虚无吞炎尚在魂天帝手中）' };
   const oldMax = S.wickMax;
   if(!Array.isArray(S.splitFlames)) S.splitFlames = [];
   S.flames.forEach(function(id){
     if(id !== 'diyan' && S.splitFlames.indexOf(id) < 0) S.splitFlames.push(id);
   });
+  if(S.seenFlames.indexOf('xuwu') < 0){
+    if(!S.flameFirst) S.flameFirst = {};
+    if(!S.flameFirst['xuwu']) S.flameFirst['xuwu'] = { cycle: S.cycle, t: Math.floor(S.stats.runTime) };
+    S.seenFlames.push('xuwu');
+    log('虚无吞炎脱离魂天帝，投入异火广场的火海，成为帝炎的一部分。', 'log-good');
+  }
   S.flames = ['diyan'];
   S.flameKind = { diyan:'origin' };
   if(S.seenFlames.indexOf('diyan') < 0){
@@ -4615,7 +4695,6 @@ function showModeHelp(){
       '<tr><td>采集</td><td>30%</td><td>100%</td><td>10%</td><td>1.25×</td><td>×1.00</td><td>' + iv('gather') + '</td></tr>' +
       '<tr><td>闭关</td><td>180%</td><td>0%</td><td>0%</td><td>无</td><td>无</td><td>无</td></tr>' +
     '</tbody></table>' +
-    '<p class="hint" style="margin-top:8px">效率 = 每秒击杀数，由战力相对区域敌人的优势、胜率与击杀时间共同计算；战力达到敌方 15 倍时封顶 1.5 只/秒，斗气、药材、魔核收益都会按效率结算。</p>' +
     '<p class="hint">奇遇基础遇火率 0.1%，历练遇火加成 ×1.25；平均间隔已计入机缘不断与当前时空结晶加速。</p>' +
     '<p class="hint">闭关期间无法主动退出；连续失败 3 次或突破大境界后自动出关。每次失败有 20% 走火入魔。</p>';
   showModal('挂机说明', body, [{ t:'知道了' }]);
@@ -4672,7 +4751,7 @@ const SAVE_KEY_NAMES = [
   'skipUnlockPopups','yield','core','herb','frugal','coreOn','herbOn','power','alchemy','pill',
   'lotus','seclusion','initialized','slots','mysteryUsed','mysteryCount','done','rescued',
   'returnCount','returnDone','intel','crystal','order','readyAt','kind','resource','amount',
-  'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text'
+  'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text','splitOriginTimer'
 ];
 const SAVE_ALPHA = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function buildSaveKeyMap(names){
@@ -4964,18 +5043,22 @@ function loadGame(){
     if(!o.stats) o.stats = d.stats;
     for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
     o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
-    if(storyOrder === 3){
-      o.story = mapStoryOrder3(o.story);
-      o.stats.storyMax = mapStoryOrder3(o.stats.storyMax);
-      o.storyOrder = 4;
+    if(storyOrder === 4){
+      o.story = mapStoryOrder4(o.story);
+      o.stats.storyMax = mapStoryOrder4(o.stats.storyMax);
+      o.storyOrder = 5;
+    } else if(storyOrder === 3){
+      o.story = mapStoryOrder4(mapStoryOrder3(o.story));
+      o.stats.storyMax = mapStoryOrder4(mapStoryOrder3(o.stats.storyMax));
+      o.storyOrder = 5;
     } else if(storyOrder === 2){
-      o.story = mapStoryOrder3(mapStoryOrder2(o.story));
-      o.stats.storyMax = mapStoryOrder3(mapStoryOrder2(o.stats.storyMax));
-      o.storyOrder = 4;
+      o.story = mapStoryOrder4(mapStoryOrder3(mapStoryOrder2(o.story)));
+      o.stats.storyMax = mapStoryOrder4(mapStoryOrder3(mapStoryOrder2(o.stats.storyMax)));
+      o.storyOrder = 5;
     } else if(storyOrder === undefined){
       o.story = mapStoryIndex(o.story);
       o.stats.storyMax = mapStoryIndex(o.stats.storyMax);
-      o.storyOrder = 4;
+      o.storyOrder = 5;
     }
     if(!o.tm) o.tm = d.tm;
     if(!o.repeat) o.repeat = d.repeat;
@@ -5197,6 +5280,16 @@ function tick(dt){
     S.stats.kills += dt / st.dur;
   }
   S.qi += originFlameQiPerSec() * dt;
+  if(hasTree('splitorigin')){
+    S.splitOriginTimer = (S.splitOriginTimer || 0) + dt * timeGainMult();
+    while(S.splitOriginTimer >= 900){
+      S.splitOriginTimer -= 900;
+      if(!awakenRandomSplitFlame()){
+        S.splitOriginTimer = 0;
+        break;
+      }
+    }
+  }
   if(S.mode === 'seclusion' && phase() === 'ash'){
     exitSeclusion('火种将熄');
   }
@@ -5305,7 +5398,6 @@ const XY = {
   cultBase: cultBase,
   levelInfo: lvlInfo,
   winChance: winChance,
-  killTime: killTime,
   phase: phase,
   phaseMult: phaseMult,
   phaseName: phaseName,
@@ -5716,10 +5808,9 @@ function renderCultivateDynamic(){
   const gs = gatherStats();
   if($('modeHint')){
     if(S.mode === 'cultivate'){
-      $('modeHint').innerHTML = '练功：斗气 <b>+' + fmt(cult) + '/秒</b>。稳定积累，无额外资源。';
+      $('modeHint').innerHTML = '练功：静心运转焚诀，斗气稳步积累。';
     } else if(S.mode === 'explore'){
-      $('modeHint').innerHTML = '历练：斗气 <b>+' + fmt(exploreQi) + '/秒</b>、药材 <b>+' + fmt(est.herb * 0.3) +
-        '/秒</b>、魔核 <b>+' + fmt(est.core) + '/秒</b>。标准魔核，少量药材。';
+      $('modeHint').innerHTML = '你在荒野间历练，猎杀魔兽、采集药草，也在旅途中等待不期而遇的机缘。';
     } else if(S.mode === 'gather'){
       $('modeHint').innerHTML = '采集：斗气 <b>+' + fmt(gatherQi) + '/秒</b>、药材 <b>+' + fmt(gs.herb) +
         '/秒</b>、魔核 <b>+' + fmt(gs.core) + '/秒</b>。标准药材，极少量魔核。';
@@ -5732,20 +5823,20 @@ function renderCultivateDynamic(){
     if($('idleQi')) $('idleQi').textContent = '+' + fmt(cult) + '/秒';
     if($('idleHerb')) $('idleHerb').textContent = '—';
     if($('idleCore')) $('idleCore').textContent = '—';
-    if($('idleKill')) $('idleKill').textContent = '—';
-    if($('idleNote')) $('idleNote').innerHTML = '静心运转焚诀，斗气稳步积累。奇遇约每 <b>' + Math.round(eventAvgInterval(S.mode)) + '</b> 秒一次。';
+    if($('idleKill')) $('idleKill').textContent = '×' + eventModeFactor(S.mode).toFixed(2);
+    if($('idleNote')) $('idleNote').innerHTML = '稳定积累，无额外资源。奇遇约每 <b>' + Math.round(eventAvgInterval(S.mode)) + '</b> 秒一次。';
   } else if(S.mode === 'explore'){
     const st = exploreStats();
     if($('idleQi')) $('idleQi').textContent = '+' + fmt(exploreQi) + '/秒';
     if($('idleHerb')) $('idleHerb').textContent = '+' + fmt(st.herb * 0.3) + '/秒';
     if($('idleCore')) $('idleCore').textContent = '+' + fmt(st.core) + '/秒';
-    if($('idleKill')) $('idleKill').textContent = st.eff.toFixed(2) + ' 只/秒';
-    if($('idleNote')) $('idleNote').innerHTML = '胜率 <b class="' + (st.w >= 0.7 ? 'green' : (st.w < 0.35 ? 'red' : 'gold')) + '">' + pct(st.w) + '</b> · 战力优势 ×' + st.adv.toFixed(2) + ' · 奇遇约每 <b>' + Math.round(eventAvgInterval(S.mode)) + '</b> 秒一次 · 自动选择最高可胜区域。';
+    if($('idleKill')) $('idleKill').textContent = '×' + eventModeFactor(S.mode).toFixed(2);
+    if($('idleNote')) $('idleNote').innerHTML = '胜率 <b class="' + (st.w >= 0.7 ? 'green' : (st.w < 0.35 ? 'red' : 'gold')) + '">' + pct(st.w) + '</b> · 奇遇约每 <b>' + Math.round(eventAvgInterval(S.mode)) + '</b> 秒一次 · 会随着进度自动切换区域。';
   } else if(S.mode === 'gather'){
     if($('idleQi')) $('idleQi').textContent = '+' + fmt(gatherQi) + '/秒';
     if($('idleHerb')) $('idleHerb').textContent = '+' + fmt(gs.herb) + '/秒';
     if($('idleCore')) $('idleCore').textContent = '+' + fmt(gs.core) + '/秒';
-    if($('idleKill')) $('idleKill').textContent = '—';
+    if($('idleKill')) $('idleKill').textContent = '×' + eventModeFactor(S.mode).toFixed(2);
     if($('idleNote')) $('idleNote').innerHTML = '采集稳定获得药材。奇遇约每 <b>' + Math.round(eventAvgInterval(S.mode)) + '</b> 秒一次。';
   } else {
     if($('idleQi')) $('idleQi').textContent = '+' + fmt(seclusionQi) + '/秒';
@@ -5886,7 +5977,6 @@ function renderDiyan(){
   const box = $('diyanBody');
   if(!box) return;
   const owned = S.flames.indexOf('diyan') >= 0;
-  const seen = S.seenFlames.length;
   if(owned){
     box.innerHTML = '<div class="hint">万火归一，帝炎已成。' + (S.story >= NODES.length ? '此世已至终章。' : '携此火，去会一会魂天帝。') + '</div>' +
       '<div class="stat-line" style="margin-top:6px"><span class="k">战力</span><span class="v">+' + Math.round(FLAME_BY_ID['diyan'].power * 100) + '%</span></div>' +
@@ -5894,11 +5984,11 @@ function renderDiyan(){
       '<div class="stat-line"><span class="k">火种</span><span class="v">+' + Math.round(FLAME_BY_ID['diyan'].wick * 100) + '%</span></div>';
     return;
   }
-  const ok = seen >= FLAME_TOTAL - 2;
+  const current = S.flames.filter(function(id){ return id !== 'diyan'; }).length;
+  const ok = current >= FLAME_TOTAL - 2;
   box.innerHTML =
     '<div class="hint">帝炎非天成，乃万火相融归一。<br>需先集齐异火榜二十一种（虚无吞炎尚在魂天帝手中）。</div>' +
-    '<div class="stat-line" style="margin-top:6px"><span class="k">异火图鉴</span><span class="v">' + seen + ' / ' + (FLAME_TOTAL - 2) + '</span></div>' +
-    '<div class="stat-line"><span class="k">融合后</span><span class="v">本世所收异火尽归帝炎</span></div>' +
+    '<div class="stat-line" style="margin-top:6px"><span class="k">本世异火</span><span class="v">' + current + ' / ' + (FLAME_TOTAL - 2) + '</span></div>' +
     '<div class="btn-row"><button class="btn" data-act="fuse" ' + (ok ? '' : 'disabled') + '>万火归一</button>' +
     '<span class="tiny">融合后，本世所收异火尽归帝炎</span></div>';
 }
@@ -6272,7 +6362,7 @@ function showSettings(){
       '<div class="stat-line"><span class="k">药材倍率</span><span class="v">×' + b.herb.toFixed(2) + '</span></div>' +
       '<div class="stat-line"><span class="k">异火 / 伙伴 / 火晶</span><span class="v">+' + Math.round(b.fPow * 100) + '% / +' + Math.round(b.pPow * 100) + '% / +' + Math.round(b.tPow * 100) + '%</span></div>' +
       '<div class="stat-line"><span class="k">图鉴永久加成</span><span class="v">+' + Math.round(b.seenPow * 100) + '%</span></div>' +
-      '<div class="stat-line"><span class="k">焚诀品阶</span><span class="v">' + furnaceName() + '</span></div>' +
+      '<div class="stat-line"><span class="k">焚诀品阶</span><span class="v">' + furnaceName() + ' · 战力 ×' + b.fTierPowMult.toFixed(2) + ' / 斗气 ×' + b.fTierQiMult.toFixed(2) + '</span></div>' +
       '<div class="stat-line"><span class="k">火种上限 / 剩余</span><span class="v">' + fmtTime(S.wickMax) + ' / ' + (phase() === 'ash' ? '将熄' : fmtTime(S.wick)) + '</span></div>' +
       '<div class="stat-line"><span class="k">奇遇间隔</span><span class="v">×' + eventIntervalMult().toFixed(2) + '</span></div>' +
       '<div class="stat-line"><span class="k">轮回火晶加成</span><span class="v">+' + cryBonus + '%</span></div>' +
@@ -6286,6 +6376,21 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.7</span><span class="cl-date">2026-11-10</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>「入轮回」补充分焰永久继承说明，重置列表增加焚诀等级与修炼进度</li>' +
+            '<li>新增 400 火晶升级「余烬回源」：每 15 分钟将分焰升为本源，受时空结晶加速</li>' +
+            '<li>帝炎合成改为检查当前周目持有；虚无吞炎在合成剧情中归入帝炎，仅留图鉴</li>' +
+            '<li>野生异火优先收录新火，其次补回图鉴遗失的旧火，最后强化当前分焰</li>' +
+            '<li>旅人残卷按境界给予 100% / 60% 斗气；剧情四类奖励翻倍</li>' +
+            '<li>魔核需求 1.12、收入 1.13；突破丹基础消耗降至 8 并加入品阶系数</li>' +
+            '<li>异火战力下调 10%，焚诀战力 / 斗气改为独立乘区；魂天帝单独 ×2.9</li>' +
+            '<li>历练固定 1.5 只/秒，效率栏改为奇遇频率；自动选区改为最高已解锁且胜率达标区域</li>' +
+            '<li>区域解锁提前到对应剧情节点；中州新增「丹塔来使」剧情</li>' +
+            '<li>炼药师升品使用独立气泡；「背水」受伤惩罚改为 +20%</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.6</span><span class="cl-date">2026-11-09</span></summary>' +
           '<ul class="cl-list">' +
             '<li>药材 / 魔核资源增长调整为 1.11^境界，突破丹改按最高已解锁区域定价</li>' +
@@ -6568,18 +6673,22 @@ async function handleSetting(act){
       if(!o.stats) o.stats = d.stats;
       for(const sk in d.stats){ if(o.stats[sk] === undefined) o.stats[sk] = d.stats[sk]; }
       o.stats.storyMax = Math.max(o.stats.storyMax || 0, o.story || 0);
-      if(storyOrder === 3){
-        o.story = mapStoryOrder3(o.story);
-        o.stats.storyMax = mapStoryOrder3(o.stats.storyMax);
-        o.storyOrder = 4;
+      if(storyOrder === 4){
+        o.story = mapStoryOrder4(o.story);
+        o.stats.storyMax = mapStoryOrder4(o.stats.storyMax);
+        o.storyOrder = 5;
+      } else if(storyOrder === 3){
+        o.story = mapStoryOrder4(mapStoryOrder3(o.story));
+        o.stats.storyMax = mapStoryOrder4(mapStoryOrder3(o.stats.storyMax));
+        o.storyOrder = 5;
       } else if(storyOrder === 2){
-        o.story = mapStoryOrder3(mapStoryOrder2(o.story));
-        o.stats.storyMax = mapStoryOrder3(mapStoryOrder2(o.stats.storyMax));
-        o.storyOrder = 4;
+        o.story = mapStoryOrder4(mapStoryOrder3(mapStoryOrder2(o.story)));
+        o.stats.storyMax = mapStoryOrder4(mapStoryOrder3(mapStoryOrder2(o.stats.storyMax)));
+        o.storyOrder = 5;
       } else if(storyOrder === undefined){
         o.story = mapStoryIndex(o.story);
         o.stats.storyMax = mapStoryIndex(o.stats.storyMax);
-        o.storyOrder = 4;
+        o.storyOrder = 5;
       }
       if(!o.auto) o.auto = d.auto;
     if(o.auto.pillThreshold === undefined) o.auto.pillThreshold = 80;
@@ -6973,7 +7082,7 @@ function updateAffordable(){
     b.disabled = !(S.pills[b.dataset.use] > 0);
   }
   const fu = document.querySelector('[data-act="fuse"]');
-  if(fu) fu.disabled = !(S.seenFlames.length >= FLAME_TOTAL - 2);
+  if(fu) fu.disabled = !(S.flames.filter(function(id){ return id !== 'diyan'; }).length >= FLAME_TOTAL - 2);
 }
 
 /* ---------- 事件绑定 ---------- */
@@ -7065,8 +7174,9 @@ function bindUI(){
     const g = rebirthGain();
     const nc = clamp(S.nextCorruption || 1, 1, 5);
     showModal('入轮回', '<p>火种将熄，真灵归寂。此世所得 <b class="gold">' + fmt(g) + ' 枚轮回火晶</b> 将随你入下一世。</p>' +
+      '<p class="hint">在这次轮回找到的异火本源，可永久继承其分焰。</p>' +
       '<p class="hint">下世侵蚀度：<b class="gold">' + nc + ' 档</b> · 升级所需斗气 +' + (nc * 10) + '% · 敌人 ×' + (1 + nc * 0.2).toFixed(2) + ' · 轮回火晶 +' + (nc * 6) + '%。</p>' +
-      '<p class="hint">保留：火晶、商店加成、图鉴、好感。<br>重置：境界、剧情、异火、丹药材料、炼药等级与熟练度。</p>', [
+      '<p class="hint">保留：火晶、商店加成、图鉴、好感。<br>重置：境界、剧情、焚诀等级、修炼进度、丹药材料、炼药等级与熟练度。</p>', [
       { t:'再守一会', cls:'ghost' },
       { t:'入轮回', cls:'', fn:function(){ const r = rebirth(); closeModal(); lastToastLevel = 2; renderAll(true); if(r.ok) toast('第 ' + S.cycle + ' 世 · 火晶 +' + r.gain); if(r.ok && r.showCorruptionIntro) showCorruptionIntro(); } }
     ]);
@@ -7168,9 +7278,7 @@ function bindUI(){
         return;
       }
       if(act === 'fuse'){
-        const r = fuseDiyan();
-        if(!r.ok) toast(r.msg);
-        renderAll(true); save();
+        openDiyanFusion();
         return;
       }
     }
