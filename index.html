@@ -2275,8 +2275,8 @@ function exploreStats(){
     dur: dur,
     eff: eff,
     killFactor: killFactor,
-    herb: herbBase(r.lvl) * 1.8 * b.herb * w * adv * killFactor,
-    core: coreBase(r.lvl) * 1.5 * b.core * w * adv * killFactor,
+    herb: stdHerbRate(r.lvl) * b.herb * w * adv * killFactor,
+    core: stdCoreRate(r.lvl) * b.core * w * adv * killFactor,
     E: E
   };
 }
@@ -4688,7 +4688,7 @@ function showModeHelp(){
     if(mode === 'seclusion') return '无';
     return Math.round(eventAvgInterval(mode)) + ' 秒';
   };
-  const body = '<p class="hint">资源百分比以当前境界标准产出为 100%。</p>' +
+  const body = '<p class="hint">资源百分比以当前区域标准产出为 100%；斗气收益按玩家境界计算。</p>' +
     '<table class="help-table"><thead><tr><th>模式</th><th>斗气</th><th>药材</th><th>魔核</th><th>奇遇频率</th><th>遇火加成</th><th>平均间隔</th></tr></thead><tbody>' +
       '<tr><td>练功</td><td>100%</td><td>0%</td><td>0%</td><td>1.00×</td><td>×1.00</td><td>' + iv('cultivate') + '</td></tr>' +
       '<tr><td>历练</td><td>60%</td><td>30%</td><td>100%</td><td>1.50×</td><td>×1.25</td><td>' + iv('explore') + '</td></tr>' +
@@ -6388,6 +6388,7 @@ function showSettings(){
             '<li>历练固定 1.5 只/秒，效率栏改为奇遇频率；自动选区改为最高已解锁且胜率达标区域</li>' +
             '<li>区域解锁提前到对应剧情节点；中州新增「丹塔来使」剧情</li>' +
             '<li>炼药师升品使用独立气泡；「背水」受伤惩罚改为 +20%</li>' +
+            '<li>采集与历练的药材 / 魔核统一按区域标准产出换算，历练为药材 30%、魔核 100%，采集为药材 100%、魔核 10%</li>' +
           '</ul>' +
         '</details>' +
         '<details class="cl-entry">' +
