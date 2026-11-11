@@ -217,13 +217,15 @@
   /* ===== tabs ===== */
   .tabs{
     position:sticky;top:var(--hud-h,160px);z-index:29;
-    display:flex;gap:2px;margin:10px 0;padding:2px 0 1px;border-radius:0;
+    display:block;margin:10px 0;padding:2px 0 1px;border-radius:0;
     background:linear-gradient(180deg,rgba(248,243,231,.92),rgba(248,243,231,.72));
     border:0;border-bottom:1px dashed rgba(36,92,69,.28);
     backdrop-filter:blur(6px);
     -webkit-backdrop-filter:blur(6px);
     box-shadow:none;
   }
+  .tab-row{display:flex;gap:2px}
+  .tab-row + .tab-row{border-top:1px dashed rgba(36,92,69,.16)}
   .tab-btn{
     flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;position:relative;
     padding:7px 4px 8px;border:0;border-radius:0;background:transparent;color:var(--muted);
@@ -231,7 +233,7 @@
   }
   .tab-btn .ic{font-family:"Noto Serif SC","Songti SC",serif;font-size:15px;line-height:1.2}
   .tab-btn:hover{color:var(--ink);background:rgba(36,92,69,.04)}
-  .tab-btn.locked{opacity:.36;filter:grayscale(1);cursor:not-allowed}
+  .tab-btn.locked{opacity:.36;filter:grayscale(1);cursor:pointer}
   .tab-btn.locked:hover{color:var(--muted);background:transparent}
   .tab-btn.on{
     color:var(--green);
@@ -248,6 +250,18 @@
   .tab{display:none;animation:fade .25s ease}
   .tab.on{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .tab.feature-locked{position:relative}
+  .tab.feature-locked > :not(.tab-lock-overlay){filter:blur(4px);opacity:.4;pointer-events:none;user-select:none}
+  .tab-lock-overlay{
+    position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;z-index:5;
+    padding:18px 10px;background:rgba(241,236,225,.46);
+    backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  }
+  .tab-lock-overlay span{
+    background:rgba(255,252,243,.95);border:1px solid rgba(29,37,31,.16);border-radius:6px;
+    padding:6px 12px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
   .card{
     background:transparent;
     border:1px solid rgba(36,92,69,.16);
@@ -379,6 +393,12 @@
 
   .story-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
   .story-name{font-family:"Noto Serif SC","Songti SC",serif;font-size:17px;color:var(--ink);letter-spacing:1px}
+  .story-name.corrupt,.story-meta b.corrupt,.bs-name.corrupt{
+    color:#7e425c;font-family:"STKaiti","KaiTi","Noto Serif SC",serif;font-style:italic;
+    text-shadow:0 0 7px rgba(126,66,92,.35);
+  }
+  .story-name.corrupt{letter-spacing:2px}
+  .badge.corrupt{color:#7e425c;border-color:rgba(126,66,92,.42);background:rgba(126,66,92,.08)}
   .story-desc{font-size:12.5px;color:var(--ink2);line-height:1.8;margin:7px 0 10px}
   .story-meta{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:8px}
   .story-meta b{color:var(--ink);font-weight:600}
@@ -408,9 +428,37 @@
   .log-love{color:#a15a72}
 
   /* flame grid */
-  .fc-row{border-top:1px dashed var(--line);padding:7px 0}
+  .fc-row{border-top:1px dashed var(--line);padding:7px 0;position:relative;overflow:hidden;border-radius:5px}
+  .fc-row .fc-content{transition:filter .2s ease, opacity .2s ease}
+  .fc-row.locked .fc-content{opacity:.16;filter:blur(2px);pointer-events:none;user-select:none}
+  .fc-lock{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;
+    padding:6px;background:rgba(241,236,225,.46);
+    backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  }
+  .fc-lock span{
+    background:rgba(255,252,243,.94);border:1px solid rgba(29,37,31,.16);border-radius:5px;
+    padding:4px 10px;color:var(--muted);font-size:11.5px;line-height:1.5;text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .feature-blur-wrap{position:relative;overflow:hidden;border-radius:6px}
+  .feature-blur-content{filter:blur(4px);opacity:.42;pointer-events:none;user-select:none}
+  .feature-lock{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;
+    padding:8px;background:rgba(241,236,225,.48);
+    backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  }
+  .feature-lock span{
+    background:rgba(255,252,243,.95);border:1px solid rgba(29,37,31,.16);border-radius:5px;
+    padding:5px 11px;color:var(--muted);font-size:11.5px;line-height:1.6;text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);max-width:95%;
+  }
   .fc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--ink2)}
   .fc-head .tiny{text-align:right}
+  .soul-mark{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(126,66,92,.35);border-radius:8px;background:linear-gradient(135deg,rgba(126,66,92,.10),rgba(224,169,46,.08));}
+  .soul-mark .sigil{width:44px;height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:"Noto Serif SC","Songti SC",serif;font-size:24px;color:#7e425c;border:1px solid rgba(126,66,92,.42);background:rgba(255,252,243,.72);box-shadow:0 0 14px rgba(126,66,92,.18);}
+  .soul-mark .nm{font-family:"Noto Serif SC","Songti SC",serif;font-size:17px;font-weight:700;color:#7e425c;letter-spacing:2px}
+  .soul-mark .tiny{color:var(--muted);margin-top:2px}
   .merchant-slot{border:1px solid var(--line);border-radius:8px;background:rgba(255,252,243,.7);padding:10px;margin-bottom:8px}
   .merchant-slot.empty{opacity:.65;border-style:dashed}
   .merchant-slot.mystery{border-color:rgba(154,106,47,.5);background:rgba(154,106,47,.07)}
@@ -469,6 +517,7 @@
   .corr-box b{color:var(--gold);font-variant-numeric:tabular-nums}
   .corr-slider{width:100%;margin:5px 0 0;accent-color:#245c45;cursor:pointer}
   .corr-ticks{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);padding:0 3px}
+  .corr-ticks.max5 span:nth-child(n+6){display:none}
   .rebirth-breakdown .stat-line.total .v{color:var(--gold)}
 
   /* pills */
@@ -477,6 +526,8 @@
     background:rgba(255,252,243,.5);border:1px solid var(--line);margin-bottom:7px;
   }
   .recipe.flash{border-color:rgba(155,122,51,.7);box-shadow:0 0 0 2px rgba(155,122,51,.22);animation:recipeFlash 1.8s ease}
+  .recipe.locked{position:relative;overflow:hidden}
+  .recipe.locked > :not(.feature-lock){filter:blur(3px);opacity:.4;pointer-events:none;user-select:none}
   @keyframes recipeFlash{0%,100%{background:rgba(255,252,243,.5)}35%{background:rgba(224,169,46,.16)}}
   .recipe .pillicon{
     width:28px;height:28px;flex:0 0 auto;border-radius:50%;
@@ -582,7 +633,9 @@
     background:rgba(255,252,243,.55);position:relative;
   }
   .node.owned{border-color:rgba(36,92,69,.35);background:rgba(36,92,69,.06)}
-  .node.locked{opacity:.55}
+  .node.locked > .nm,
+  .node.locked > .ds,
+  .node.locked > .bottom{opacity:.55}
   .node .nm{font-size:12px;color:var(--ink);letter-spacing:.5px}
   .node .ds{font-size:10.5px;color:var(--muted);line-height:1.55;margin:4px 0 7px;min-height:30px}
   .node-tip{
@@ -634,6 +687,13 @@
   .auto-threshold input{width:58px;padding:4px 6px;border:1px solid var(--line);border-radius:5px;background:rgba(255,252,243,.75);color:var(--ink);font-family:inherit;font-size:12px;text-align:center}
   .auto-threshold input:focus{outline:none;border-color:var(--green)}
   .auto-threshold .tiny{margin-left:auto}
+  .ban-section{margin-top:10px;border:1px solid var(--line);border-radius:6px;padding:8px}
+  .ban-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;font-size:12px;color:var(--ink)}
+  .ban-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px dashed var(--line)}
+  .ban-row:first-of-type{border-top:0;padding-top:2px}
+  .ban-row .nm{font-size:12px;color:var(--ink)}
+  .ban-row .ds{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px}
+  .ban-row .btn{flex:0 0 auto}
 
   footer{
     margin-top:26px;padding:16px 4px 8px;border-top:1px solid var(--line);
@@ -654,6 +714,15 @@
     border:1px solid rgba(36,92,69,.32);border-radius:11px;
     box-shadow:0 24px 60px rgba(29,37,31,.28),inset 0 1px 0 rgba(255,255,255,.7);
     padding:18px 18px 16px;isolation:isolate;
+  }
+  .modal-card.battle-shake{animation:battleShake .38s ease}
+  @keyframes battleShake{
+    0%,100%{transform:translateX(0)}
+    18%{transform:translateX(-7px)}
+    36%{transform:translateX(6px)}
+    54%{transform:translateX(-4px)}
+    72%{transform:translateX(3px)}
+    88%{transform:translateX(-1px)}
   }
   .modal-title{
     font-family:"Noto Serif SC","Songti SC",serif;font-size:18px;letter-spacing:2px;color:var(--green);margin-bottom:10px;
@@ -677,9 +746,19 @@
   .bs-hp{font-size:10px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
   .battle-vs{flex:0 0 auto;font-size:10px;color:var(--dim);letter-spacing:1px}
   .battle-hpbar{position:relative;height:12px;border-radius:99px;background:rgba(29,37,31,.09);overflow:hidden;margin-top:5px;border:1px solid rgba(29,37,31,.08)}
-  .battle-hpbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#5b8f72,#2f6b52);transition:width .25s}
+  .battle-hpbar i{position:absolute;left:0;top:0;bottom:0;display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#5b8f72,#2f6b52);transition:width .25s;z-index:2}
   .battle-hpbar.enemy i{background:linear-gradient(90deg,#c46a4e,#963f32)}
-  .battle-hpbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(20,35,28,.8);font-variant-numeric:tabular-nums}
+  .battle-hpbar .hp-ghost{
+    position:absolute;top:0;bottom:0;z-index:1;border-radius:99px;pointer-events:none;
+    background:linear-gradient(90deg,rgba(224,169,46,.95),rgba(242,162,74,.85));
+    transform-origin:left center;animation:hpGhost .9s ease .15s forwards;
+  }
+  .battle-hpbar.enemy .hp-ghost{background:linear-gradient(90deg,rgba(224,169,46,.95),rgba(196,106,78,.8))}
+  @keyframes hpGhost{
+    0%,40%{opacity:.95;transform:scaleX(1)}
+    100%{opacity:0;transform:scaleX(0)}
+  }
+  .battle-hpbar span{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(20,35,28,.8);font-variant-numeric:tabular-nums}
   .battle-round{text-align:center;font-size:10.5px;color:var(--dim);margin:4px 0 6px}
   .battle-intent{text-align:center;font-size:10.5px;color:var(--gold);margin:-2px 0 6px}
   .battle-log{height:184px;max-height:184px;overflow:auto;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:6px 2px;margin-bottom:8px;font-size:11px;line-height:1.7;color:var(--muted);text-align:left}
@@ -863,12 +942,18 @@
   </header>
 
   <nav class="tabs" id="tabs">
-    <button class="tab-btn on" data-tab="cultivate"><span class="ic">修</span><span>修炼</span></button>
-    <button class="tab-btn" data-tab="flame"><span class="ic">焚</span><span>焚诀</span></button>
-    <button class="tab-btn" data-tab="alchemy"><span class="ic">丹</span><span>炼丹</span></button>
-    <button class="tab-btn locked" data-tab="merchant"><span class="ic">商</span><span>商会</span></button>
-    <button class="tab-btn" data-tab="gallery"><span class="ic">鉴</span><span>图鉴</span></button>
-    <button class="tab-btn locked" data-tab="rebirth"><span class="ic">轮</span><span>轮回</span></button>
+    <div class="tab-row">
+      <button class="tab-btn on" data-tab="cultivate"><span class="ic">修</span><span>修炼</span></button>
+      <button class="tab-btn" data-tab="flame"><span class="ic">焚</span><span>焚诀</span></button>
+      <button class="tab-btn" data-tab="alchemy"><span class="ic">丹</span><span>炼丹</span></button>
+      <button class="tab-btn locked" data-tab="rebirth"><span class="ic">轮</span><span>轮回</span></button>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn locked" data-tab="merchant"><span class="ic">商</span><span>商会</span></button>
+      <button class="tab-btn" data-tab="puppet"><span class="ic">傀</span><span>傀儡</span></button>
+      <button class="tab-btn" data-tab="soul"><span class="ic">魂</span><span>魂力</span></button>
+      <button class="tab-btn" data-tab="gallery"><span class="ic">鉴</span><span>图鉴</span></button>
+    </div>
   </nav>
 
   <main>
@@ -933,7 +1018,7 @@
               <span class="tiny">1–100，默认 80%</span>
             </div>
             <div class="switch">
-              <div class="lb">自动挑战剧情<small>胜率达到设定值时自动出手；仅对无回合战斗的剧情节点生效</small></div>
+              <div class="lb">自动挑战剧情<small>无战斗剧情按胜率阈值；可跳过的回合战斗按战力自动跳过</small></div>
               <div class="sw on" id="swStory"></div>
             </div>
             <div class="auto-threshold">
@@ -950,7 +1035,7 @@
 
         <div>
           <div class="card" id="storyCard">
-            <div class="card-title"><span>剧情 · 第 <b id="storyNo">1</b> 节</span><span class="sub" id="storyProgress">0 / 0</span></div>
+            <div class="card-title"><span>剧情 · 第 <b id="storyNo">1</b> 节</span><span class="sub" id="storyProgress">0 / 0</span><button class="btn sm ghost" data-act="skill-config" type="button">技能设置</button></div>
             <div id="storyBody"></div>
             <div class="story-cooldown" id="storyCooldown" hidden>
               <div class="scd-head"><span>调息中</span><span id="storyCdText">12.0s</span></div>
@@ -1140,8 +1225,8 @@
         </div>
         <div class="corr-box">
           <div class="row between"><span class="tiny">下次轮回侵蚀度</span><b id="corrVal">1 档</b></div>
-          <input class="corr-slider" id="corrSlider" type="range" min="1" max="5" step="1" value="1">
-          <div class="corr-ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+          <input class="corr-slider" id="corrSlider" type="range" min="1" max="8" step="1" value="1">
+          <div class="corr-ticks" id="corrTicks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
           <div class="hint" id="corrEffects" style="margin-top:5px"></div>
         </div>
       </div>
@@ -1173,6 +1258,20 @@
         </div>
       </div>
     </section>
+
+    <section class="tab" data-tab="puppet">
+      <div class="card">
+        <div class="card-title"><span>傀儡</span><span class="sub">暂未开放</span></div>
+        <div class="hint">傀儡炼制与操控的界面已经预留。之后会在这里接入傀儡培养、出战与所需材料。</div>
+      </div>
+    </section>
+
+    <section class="tab" data-tab="soul">
+      <div class="card">
+        <div class="card-title"><span>灵魂力量</span><span class="sub" id="soulState">尚未觉醒</span></div>
+        <div id="soulBody"></div>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -1198,7 +1297,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.2.7';
+const GAME_VERSION = 'v0.2.8';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -1318,9 +1417,9 @@ const NODES = [
     desc:'服下血莲丹，萧炎潜入塔戈尔沙漠地底。熔岩湖心青莲盛放，莲心一点青火。蛇人族女王美杜莎正在不远处蜕变，气息紊乱。',
     win:'青莲地心火入体，焚诀第一次真正转动。美杜莎化蛇而去，海波东的封印也就此解开。',
     partners:['haibodong','meidusha'], flame:'qinglian', key:'lianxin', reward:{qi:1.5, herb:1.4, core:1.2, wick:240} },
-  { title:'佛怒火莲', place:'加玛帝国 · 墨家', lvl:25, mult:1.15, req:25, region:-1,
-    desc:'墨承挟青鳞为质，两种异火在掌心强行相融。药老怒喝：“你疯了？！”',
-    win:'火莲升空，墨家化为焦土。药老灵魂受创陷入沉睡，青鳞抱着膝盖哭得说不出话。',
+  { title:'佛怒火莲', place:'天蛇府 · 黑蛇巢', lvl:25, mult:1.15, req:25, region:-1,
+    desc:'青鳞被天蛇府掳走，萧炎追至黑蛇巢。八翼黑蛇皇盘踞深处，骨灵冷火与青莲地心火在掌心相触。药老厉喝：“你疯了？！”',
+    win:'火莲升空，八翼黑蛇皇的鳞甲寸寸崩裂。药老拼尽灵魂之力护住萧炎，随即陷入沉睡。青鳞得救，抱着膝盖哭得说不出话。',
     partners:['qinglin'], flame:null, key:null, reward:{qi:1.5, herb:1.6, core:1.2, wick:240} },
   { title:'云岚宗决战', place:'云岚宗 · 山门', lvl:31, mult:1.5, req:30, region:3,
     desc:'三年之约，云岚宗山门。纳兰嫣然长剑出鞘，身后是云山与满宗强者。',
@@ -1408,7 +1507,7 @@ const NODES = [
     partners:['zhukun'], flame:null, key:null, reward:{qi:3.6, herb:6, core:6, wick:1200} },
   { title:'双帝之战', place:'中州 · 黑云之上', lvl:91, mult:3.2, req:90, region:-1,
     desc:'魂天帝立于黑云之上，魂族大军遮天蔽日。你掌心万火归位，帝炎第一次完整现世。',
-    win:'帝炎焚天，魂天帝被生生封印。斗气大陆重归安宁，而你的故事，才刚刚开始。',
+    win:'帝炎焚天，魂天帝被生生封印。斗气大陆重归安宁，而你的故事，才刚刚开始。此世剧情已尽；即便火种尚在橙红，现在也可以入轮回。',
     partners:[], flame:null, key:'puti_dahuan', reward:{qi:0, herb:0, core:0, wick:0} }
 ];
 
@@ -1442,7 +1541,7 @@ const STORY_DETAILS = [
   `<p>魔兽山脉深处，采药的少女被狼群围住。萧炎出手相救，才知道她叫小医仙，独自在山中行医。</p><p>山洞深处，紫云翼与一张残图静候有缘人。残图上妖火纹路晦暗难辨，小医仙把药囊塞给他：“下次别逞强。”她没说的是，自己的厄难毒体，已经越来越压不住了。</p>`,
   `<p>暴雨困住山路，萧炎在山洞中遇见斗气耗尽的云芝。她蒙着面纱，掌心紫火翻涌，却连站起来的力气都没有。</p><p>一夜各取所需，谁也没提姓名。天亮时她只留下一句“云岚宗，莫要来”，便消失在雨里。后来他才知道，那是云岚宗宗主云韵。</p>`,
   `<p>塔戈尔沙漠地底，熔岩湖心青莲盛放，莲心一点青火。蛇人族女王美杜莎正在不远处蜕变，气息紊乱，整座地底都在震颤。</p><p>萧炎夺莲、取火、解开海波东的封印，又顺手把蜕变后的美杜莎带走。青莲地心火入体，焚诀第一次真正转动，气息一路攀升。</p>`,
-  `<p>墨承挟青鳞为质，萧炎被逼到绝境。他掌心两种异火强行相融，药老在戒指里怒喝：“你疯了？！”</p><p>火莲升空，墨家化为焦土。青鳞得救，药老却因灵魂受创陷入沉睡。少年第一次知道，所谓底牌，是要拿命去换的。</p>`,
+  `<p>天蛇府掳走青鳞，萧炎循着气息追到黑蛇巢。八翼黑蛇皇盘踞在巢穴深处，腥风卷着毒雾，青鳞被锁在蛇阵中央。</p><p>萧炎将骨灵冷火与青莲地心火强行相融，火莲升空。八翼黑蛇皇的鳞甲在火海中崩裂；药老以残魂之力替他挡住余波，灵魂耗尽，陷入沉睡。青鳞得救，少年第一次知道，所谓底牌，是要拿命去换的。</p>`,
   `<p>三年之约到期，萧炎孤身上云岚宗。纳兰嫣然长剑出鞘，云山与满宗强者坐镇山门，没人相信这个从乌坦城走出来的少年能活着下山。</p><p>一剑破约，云岚宗颜面扫地。云山出手，美杜莎自天而降将萧炎带走。云韵站在乱局里，终究没有拦他。</p>`,
   `<p>迦南学院选拔赛上强榜林立，萧炎一路打进内院。天焚炼气塔高耸入云，塔底岩浆翻涌，隐隐有火灵咆哮。</p><p>他立起磐门，结识紫妍。小丫头抱着药鼎啃得满脸药渣，含含糊糊地说：“你这人，有点意思。”</p>`,
   `<p>天焚炼气塔底，陨落心炎暴走，将萧炎与美杜莎一同拖入地底岩浆。心火由内而外煅烧斗气，稍有不慎便是神魂俱灭。</p><p>不知过了多久，两人破土而出。萧炎的气息比先前强了数倍，美杜莎冷着脸替他披上外衣：“这笔账，记着。”</p>`,
@@ -1464,7 +1563,7 @@ const STORY_DETAILS = [
   `<p>药族药典，万火朝宗。九品玄丹出炉的那一刻，丹雷九响，天地失色。</p><p>萧炎被尊为当世第一炼药师。药族长老躬身：“药族，愿附骥尾。”</p>`,
   `<p>天墓深处，先祖萧玄的残魂燃尽最后一点力量，为萧炎推开灵魂蜕变的门。</p><p>灵魂大成，萧战自魂族囚牢中被救出。父子相对，谁也没先开口。</p>`,
   `<p>古帝洞府开启，异火广场上万火低鸣。陀舍古帝的传承静候万年，只为等一个后来者。</p><p>古帝传承入体，斗帝之门洞开。烛坤与紫妍父女相认，古元沉默地望向天际。</p>`,
-  `<p>魂天帝立于黑云之上，魂族大军遮天蔽日。萧炎掌心万火归位，帝炎第一次完整现世。</p><p>帝炎焚天，魂天帝被生生封印。斗气大陆重归安宁。后来，萧炎在乌坦城补了一场婚礼，薰儿、彩鳞、云韵、小医仙、雅妃都在。故事到这里，才刚刚开始。</p>`
+  `<p>魂天帝立于黑云之上，魂族大军遮天蔽日。萧炎掌心万火归位，帝炎第一次完整现世。</p><p>帝炎焚天，魂天帝被生生封印。斗气大陆重归安宁。后来，萧炎在乌坦城补了一场婚礼，薰儿、彩鳞、云韵、小医仙、雅妃都在。故事到这里，才刚刚开始。</p><p>此世剧情已尽，即便火种尚在橙红，现在也可以入轮回。</p>`
 ];
 
 const PARTNERS = [
@@ -1700,7 +1799,7 @@ const PILLS = [
     mats:'火属性药草、一阶火系魔核', desc:'一品丹药，炼药师大会的入门考核。' },
   { id:'zhuji', name:'筑基灵液', tier:2, type:'qi', pct:0.14, flatQi:100, costPct:0.238, maxLevel:26,
     mats:'紫叶兰草、洗骨花、一阶木系魔核', desc:'滴入清水浸泡，化斗之气为斗气。' },
-  { id:'juqi', name:'聚气散', tier:4, type:'qi', pct:0.18, flatQi:3000, costPct:0.449, maxLevel:44,
+  { id:'juqi', name:'聚气散', tier:4, type:'qi', pct:0.18, flatQi:2000, costPct:0.449, maxLevel:44,
     mats:'墨叶莲、蛇涎果、聚灵草、二阶水系魔核', desc:'九段斗之气可凝斗之气旋。' },
   { id:'huangji', name:'皇极丹', tier:6, type:'qi', pct:0.26, costPct:0.766, maxLevel:71,
     mats:'血蟒枝、皇极草、六阶火系魔核', desc:'斗皇之丹，药力霸道，可省数年苦修。' },
@@ -1777,7 +1876,7 @@ const TREE = [
   { id:'timecry2',name:'时空延展',   cost:580, req:['timecry'], desc:'时空结晶持续时间 ×2（15 → 30 分钟）' },
   { id:'start1',name:'火种余烬',     cost:320, req:[],         desc:'转生时携带一种异火本源（包括帝炎）' },
   { id:'splitorigin',name:'余烬回源', cost:400, req:[],        desc:'轮回开始后每 15 分钟，随机一种分焰成长为本源（受时空结晶加速，奇遇异火优先）' },
-  { id:'ash1',  name:'不灭余烬',     cost:720, req:[],         desc:'灰烬惩罚由 -80% 降至 -50%' },
+  { id:'ash1',  name:'不灭余烬',     cost:720, req:[],         desc:'灰烬阶段的挂机效率惩罚由 -80% 降至 -50%（战力不再额外降低）' },
   { id:'fail1', name:'败而不馁·一',  cost:180, req:[],          desc:'战斗失败扣除的火种时间 -30%' },
   { id:'fail2', name:'败而不馁·二',  cost:460, req:['fail1'],   desc:'失败火种损失再 -25%（合计 -55%）' },
   { id:'pow3',  name:'斗帝残印',     cost:900, req:[],          desc:'战力 +30%，斗气获取 +60%' }
@@ -1930,14 +2029,33 @@ function stdCoreRate(L){ return coreBase(L) * 1.5 * BASE_ADV_FACTOR; }
 function stdCoreCostRate(L){ return coreCostBase(L) * 1.5 * BASE_ADV_FACTOR; }
 function cultBase(L){ return reqCultBase(L) / levelTime(L); }
 function powerBase(L){ return 10 * Math.pow(1.30, L); }
+function enemyPowerBase(L){ return 10 * Math.pow((S.corruption || 0) >= 8 ? 1.31 : 1.30, L); }
 function herbBase(L){ return 0.35 + 0.15 * Math.pow(1.11, L); }
 function coreBase(L){ return 0.01 + 0.005 * Math.pow(1.13, L); }
 function coreCostBase(L){ return 0.01 + 0.005 * Math.pow(1.12, L); }
 function corruptionEnemyMult(){ return 1 + 0.20 * clamp(S.corruption || 0, 0, 5); }
 function nextCorruptionEnemyMult(){ return 1 + 0.20 * clamp(S.nextCorruption || 1, 1, 5); }
-function enemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMult(); }
+function enemyPower(lvl, mult){ return enemyPowerBase(lvl) * mult * corruptionEnemyMult(); }
 // 野外历练与剧情共用同一套侵蚀度敌人增幅
-function regionEnemyPower(lvl, mult){ return powerBase(lvl) * mult * corruptionEnemyMult(); }
+function regionEnemyPower(lvl, mult){ return enemyPowerBase(lvl) * mult * corruptionEnemyMult(); }
+function corruptedStoryNode(n){
+  const c = clamp(S.corruption || 0, 0, 8);
+  if(c < 6 || !n) return false;
+  const idx = NODES.indexOf(n);
+  if(idx < 0) return false;
+  const raw = (S.cycle || 1) + '|' + c + '|' + idx;
+  let h = 2166136261;
+  for(let i = 0; i < raw.length; i++){
+    h ^= raw.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h ^= h >>> 16;
+  h = Math.imul(h, 2246822507);
+  h ^= h >>> 13;
+  h = Math.imul(h, 3266489909);
+  h ^= h >>> 16;
+  return ((h >>> 0) / 4294967296) < (c >= 7 ? 0.20 : 0.10);
+}
 
 function powerAdvantageWinChance(P, E){
   const t = clamp(P / E - 1, 0, 1);
@@ -2000,7 +2118,7 @@ function defaultState(){
     craftFailStreak: {},
     alchemyLevel: 1,
     alchemyExp: 0,
-    alchemyUpgrade: { yield:0, core:0, herb:0, frugal:0, coreOn:false, herbOn:false },
+    alchemyUpgrade: { yield:0, core:0, herb:0, frugal:0 },
     fireCult: { power:0, alchemy:0, pill:0, lotus:0, seclusion:0 },
     merchant: { initialized:false, slots:[null,null], mysteryUsed:{ intel:false, crystal:false, wick:false }, mysteryCount:0 },
     traveler: { done:false, rescued:false, returnCount:0, returnDone:false },
@@ -2021,7 +2139,8 @@ function defaultState(){
     carry: null,
     carryOn: false,
     auto: { brk:true, pill:true, pillThreshold:80, story:true, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
-    settings: { skipUnlockPopups:false, ashDim:true },
+    battleBan: { skills:[], tactics:[] },
+    settings: { skipUnlockPopups:false, ashDim:true, battleShake:true },
     tutorialDone: false,
     achievements: {},
     achievementProgress: {},
@@ -2033,6 +2152,7 @@ function defaultState(){
     stats: { playTime:0, runTime:0, kills:0, battles:0, wins:0, pills:0, rebirths:0, maxLevel:2, storyMax:0 },
     tm: { brk:0, craft:0, story:0, event:18, save:0 },
     endSeen: false,
+    soulMark: false,
     _phaseSeen: 'orange',
     _flamePity: 0,
     lastSave: Date.now()
@@ -2054,6 +2174,9 @@ function phaseMult(){
   if(p === 'orange') return 1;
   if(p === 'red') return 0.8;
   return hasTree('ash1') ? 0.5 : 0.2;
+}
+function phasePowerMult(){
+  return phase() === 'orange' ? 1 : 0.8;
 }
 function phaseName(){
   const p = phase();
@@ -2178,7 +2301,8 @@ function furnaceNextText(){
 }
 
 function bonuses(){
-  const pm = phaseMult();
+  const idlePm = phaseMult();
+  const powPm = phasePowerMult();
   let fPow = 0, fQi = 0, fHerb = 0;
   S.flames.forEach(function(id){
     const f = FLAME_BY_ID[id]; if(!f) return;
@@ -2200,10 +2324,10 @@ function bonuses(){
   const seenPow = 0.06 * S.seenFlames.length + 0.07 * S.seenPartners.length;
   const seenQi = 0.03 * S.seenFlames.length + 0.025 * S.seenPartners.length;
   const fcPow = 0.03 * fireCultLevel('power');
-  const qi = (1 + fQi + pQi + tQi + rQi + seenQi) * fTierQiMult * pm;
-  const herb = (1 + fHerb + pHerb + tHerb + rHerb) * pm;
-  const core = (1 + (hasTree('core1') ? 0.30 : 0)) * pm;
-  const pow = (1 + fPow + pPow + tPow + rPow + seenPow + fcPow) * fTierPowMult * pm;
+  const qi = (1 + fQi + pQi + tQi + rQi + seenQi) * fTierQiMult * idlePm;
+  const herb = (1 + fHerb + pHerb + tHerb + rHerb) * idlePm;
+  const core = (1 + (hasTree('core1') ? 0.30 : 0)) * idlePm;
+  const pow = (1 + fPow + pPow + tPow + rPow + seenPow + fcPow) * fTierPowMult * powPm;
   return { qi: qi, herb: herb, core: core, power: pow, fPow: fPow, fQi: fQi, fHerb: fHerb, pPow: pPow, tPow: tPow, seenPow: seenPow, fcPow: fcPow, fTierPowMult: fTierPowMult, fTierQiMult: fTierQiMult };
 }
 
@@ -2350,7 +2474,13 @@ function upgradeFireCult(id){
 }
 function fireCultPowMult(){ return 1 + 0.03 * fireCultLevel('power'); }
 function fireCultAlchemyBonus(){ return 0.012 * fireCultLevel('alchemy'); }
-function fireCultPillMult(){ return (1 + 0.02 * fireCultLevel('pill')) * (hasOriginFlame('guling') ? 1.1 : 1); }
+function corruptionPillMult(){
+  const c = clamp(S.corruption || 0, 0, 8);
+  if(c >= 7) return 0.5;
+  if(c >= 6) return 0.8;
+  return 1;
+}
+function fireCultPillMult(){ return (1 + 0.02 * fireCultLevel('pill')) * (hasOriginFlame('guling') ? 1.1 : 1) * corruptionPillMult(); }
 function fireCultSeclusionMult(){ return 1 + 0.03 * fireCultLevel('seclusion'); }
 function fireCultBreakBonus(){ return 0.005 * fireCultLevel('seclusion'); }
 function lotusProc(){
@@ -2369,13 +2499,18 @@ function nodeEnemy(n){
   if(idx >= 15) E *= Math.pow(1.06, idx - 15);
   if(hasTree('speedfire') && S.story < 3) E *= 0.2;
   if(n.title === '双帝之战') E *= FINAL_BOSS_POWER_MULT;
+  if(corruptedStoryNode(n)) E *= 1.5;
   return E;
 }
 function nextNode(){ return S.story < NODES.length ? NODES[S.story] : null; }
 function nodeWin(n){ return storyWinChance(power(), nodeEnemy(n)); }
 function autoStoryThreshold(){ return clamp((S.auto.storyThreshold || 60) / 100, 0.10, 1); }
 function autoStoryReady(n){
-  return !!n && !nodeHasEnemy(n) && canChallenge(n).ok && nodeWin(n) >= autoStoryThreshold();
+  if(!n || !canChallenge(n).ok) return false;
+  if(nodeHasEnemy(n)){
+    return canSkipStoryBattle(n, power(), nodeEnemy(n));
+  }
+  return nodeWin(n) >= autoStoryThreshold();
 }
 function canChallenge(n){
   if(!n) return { ok:false, why:'剧情已尽' };
@@ -2433,6 +2568,7 @@ function tryBreak(auto){
     if(S.level > (S.stats.maxLevel || 2)) S.stats.maxLevel = S.level;
     checkLevelAchievements();
     if(S.level >= MAX_LEVEL) log('斗气大陆之巅，斗帝之境，今日终至。', 'log-good');
+    maybeGrantSoulMark();
     return { ok:true, msg:'突破成功' };
   } else {
     const protectors = [];
@@ -2510,26 +2646,26 @@ function pillBaseCost(p){
 }
 function pillCost(p){
   const cost = pillBaseCost(p);
-  const au = S.alchemyUpgrade || {};
-  if(au.herbOn && au.herb > 0) cost.herb = Math.max(1, Math.round(cost.herb * (1 + alchemyExtraHerbPct())));
-  if(au.coreOn && au.core > 0) cost.core = Math.max(0, Math.round(cost.core * (1 + alchemyExtraCorePct())));
+  const herbOff = alchemyHerbDiscount();
+  const coreOff = alchemyCoreDiscount();
+  if(herbOff > 0) cost.herb = Math.max(1, Math.round(cost.herb * (1 - herbOff)));
+  if(coreOff > 0) cost.core = Math.max(0, Math.round(cost.core * (1 - coreOff)));
   return cost;
 }
 function pillCostFrugal(p){
   const base = pillBaseCost(p);
-  let herb = base.herb * 0.60;
-  const au = S.alchemyUpgrade || {};
-  if(au.herbOn && au.herb > 0) herb *= (1 + alchemyExtraHerbPct());
+  const herb = base.herb * 0.60 * (1 - alchemyHerbDiscount());
+  const core = base.core * 0.60 * (1 - alchemyCoreDiscount());
   return {
     herb: Math.max(1, Math.round(herb)),
-    core: Math.max(0, Math.round(base.core * 0.60))
+    core: Math.max(0, Math.round(core))
   };
 }
 const ALCH_UPGRADE_DEFS = {
   yield: { name:'丹成气生', max:5, qiBase:50000, qiGrowth:2.00, herbBase:400, herbGrowth:1.80, eff:'成功炼丹时获得当前境界所需斗气' },
-  core:  { name:'魔核添薪', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'额外消耗魔核，提高炼丹成功率' },
-  herb:  { name:'药材凝效', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'额外消耗药材，提高丹药药效' },
-  frugal:{ name:'减料成丹', max:1, qiBase:50000, qiGrowth:1.00, herbBase:0, herbGrowth:1.00, eff:'解锁减料炼丹：六成材料，成丹率减半；不与添薪叠加，不影响药效，委托不可用' }
+  core:  { name:'魔核省炼', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'减少炼丹的魔核消耗' },
+  herb:  { name:'药材省炼', max:2, qiBase:500000, qiGrowth:2.00, herbBase:2000, herbGrowth:2.00, eff:'减少炼丹的药材消耗' },
+  frugal:{ name:'减料成丹', max:1, qiBase:50000, qiGrowth:1.00, herbBase:0, herbGrowth:1.00, eff:'解锁减料炼丹：六成材料，成丹率减半；不影响药效，委托不可用' }
 };
 function alchUpgradeLevel(id){
   return (S.alchemyUpgrade && S.alchemyUpgrade[id]) | 0;
@@ -2558,10 +2694,9 @@ function upgradeAlchemyUpgrade(id){
   return { ok:true, level:lv + 1 };
 }
 function alchemyYieldPct(){ const lv = alchUpgradeLevel('yield'); return (lv > 0 ? 0.01 + 0.003 * lv : 0) * (hasOriginFlame('guling') ? 1.5 : 1); }
-function alchemyExtraCorePct(){ const lv = alchUpgradeLevel('core'); return lv === 1 ? 0.30 : (lv >= 2 ? 0.50 : 0); }
-function alchemyExtraHerbPct(){ const lv = alchUpgradeLevel('herb'); return lv === 1 ? 0.30 : (lv >= 2 ? 0.50 : 0); }
-function alchemySuccessBonus(p){ if(p && p.id === 'zhuji') return 0; return (S.alchemyUpgrade && S.alchemyUpgrade.coreOn) ? (alchUpgradeLevel('core') === 1 ? 0.03 : (alchUpgradeLevel('core') >= 2 ? 0.05 : 0)) : 0; }
-function alchemyHerbEffectMult(){ return (S.alchemyUpgrade && S.alchemyUpgrade.herbOn) ? (alchUpgradeLevel('herb') === 1 ? 1.10 : (alchUpgradeLevel('herb') >= 2 ? 1.15 : 1)) : 1; }
+function alchemyCoreDiscount(){ const lv = alchUpgradeLevel('core'); return lv === 1 ? 0.15 : (lv >= 2 ? 0.25 : 0); }
+function alchemyHerbDiscount(){ const lv = alchUpgradeLevel('herb'); return lv === 1 ? 0.10 : (lv >= 2 ? 0.20 : 0); }
+function alchemyHerbEffectMult(){ return 1; }
 const MERCHANT_REFRESH_MS = 5 * 60 * 1000;
 const MERCHANT_MYSTERY_NAMES = { intel:'异火情报', crystal:'火晶', wick:'火种' };
 function merchantPillPool(){
@@ -2719,7 +2854,6 @@ function craftChance(p, frugal){
   const streak = (S.craftFailStreak && S.craftFailStreak[p.id]) || 0;
   // 连续失败后，本次成丹率相对提高 50%，最高 100%
   let c = streak > 0 ? base * 1.5 : base;
-  if(!frugal) c += alchemySuccessBonus(p);
   return clamp(c, 0.05, 1);
 }
 function canCraft(p, frugal){
@@ -2893,7 +3027,22 @@ function resolveStoryWin(n){
   if(S.stats) S.stats.storyMax = Math.max(S.stats.storyMax || 0, S.story);
   if(n.title === '双帝之战' && (S.corruption || 0) === 5) unlockAchievement('corruption5');
   log('【' + n.title + '】' + n.win, 'log-good');
+  maybeGrantSoulMark();
   checkModeUnlocks(prevStory);
+  if(n.title === '佛怒火莲' && !(S.seenUnlocks && S.seenUnlocks.lotusIntro)){
+    if(!S.seenUnlocks) S.seenUnlocks = {};
+    S.seenUnlocks.lotusIntro = true;
+    save();
+    showModal('佛怒火莲 · 初战',
+      '<p class="quote">“你疯了？！”药老的声音在戒指里炸响。</p>' +
+      '<p>天蛇府掳走了青鳞。萧炎循着气息追到黑蛇巢，八翼黑蛇皇盘踞在巢穴深处，猩红的蛇瞳在毒雾中亮起，青鳞被锁在蛇阵中央。</p>' +
+      '<p>青莲地心火与骨灵冷火同时燃起，两道异火彼此撕咬、排斥，焚诀却像一只无形的手，把它们一点点拧成一朵莲。火莲脱手，黑蛇巢被照得亮如白昼，八翼黑蛇皇的鳞甲在火海中寸寸崩裂。</p>' +
+      '<p>余波反噬而来，药老以残魂之力挡在萧炎身前。火莲散去时，青鳞得救了，药老却耗尽灵魂，陷入沉睡。</p>' +
+      '<p>你第一次知道，所谓底牌，是要拿命去换的。</p>' +
+      '<div class="hint" style="margin-top:8px">此后若集齐两种异火，可在回合战斗中释放佛怒火莲：需先用蓄势或引火积蓄力量，一场战斗限一次；凝莲失败会立即失去 40% 生命，战斗结束后还会折损当前火种上限的 6%。</div>' +
+      '<p class="hint">火莲的触发率与威力，可在「焚诀」页的「异火修炼」中提升「莲心焚天」。</p>',
+      [{ t:'记下了' }]);
+  }
   if(prevStory < mapStoryOrder2(5) && S.story >= mapStoryOrder2(5) && !(S.seenUnlocks && S.seenUnlocks.wildFlame)){
     if(!S.seenUnlocks) S.seenUnlocks = {};
     S.seenUnlocks.wildFlame = true;
@@ -3025,11 +3174,11 @@ function canSkipStoryBattle(n, P, E){
   return limit > 0 && !!n && nodeHasEnemy(n) && phase() !== 'ash' &&
     turnBattleNumber(n) <= limit && P >= E;
 }
-function storyEnemyName(n){
+function storyEnemyBaseName(n){
   if(!n) return '敌人';
   if(n.title === '魔兽山脉') return '狼群';
   if(n.title === '青莲地心火' || n.title === '陨落心炎') return '异火化身';
-  if(n.title === '佛怒火莲') return '墨承';
+  if(n.title === '佛怒火莲') return '八翼黑蛇皇';
   if(n.title === '云岚宗决战') return '纳兰嫣然';
   if(n.title === '黑角域 · 韩枫') return '韩枫';
   if(n.title === '三上云岚宗') return '云山';
@@ -3044,6 +3193,10 @@ function storyEnemyName(n){
   if(n.title === '双帝之战') return '魂天帝';
   return n.title;
 }
+function storyEnemyName(n){
+  const base = storyEnemyBaseName(n);
+  return corruptedStoryNode(n) ? '邪化 · ' + base : base;
+}
 const BATTLE_TACTICS = [
   { id:'guard', name:'招架', desc:'造成50%伤害，本回合受到伤害 -65%' },
   { id:'pill', name:'服丹', desc:'不攻击，每回合回复5%生命，持续3回合；重复使用只重置持续时间' },
@@ -3053,7 +3206,7 @@ const BATTLE_TACTICS = [
   { id:'fireArmor', name:'火铠', desc:'不攻击，本场受伤 -10% 且不会被暴击；触发后本场不再出现' }
 ];
 const BATTLE_SKILLS = [
-  { id:'xizhang', name:'吸掌', desc:'造成80%伤害，敌人下回合攻击伤害 -30%', story:1, weight:1 },
+  { id:'xizhang', name:'吸掌', desc:'造成80%伤害，敌人下回合攻击伤害 -50%', story:1, weight:1 },
   { id:'chuihuo', name:'吹火掌', desc:'造成110%伤害，每拥有一种异火伤害倍率 +5%', story:2, weight:1 },
   { id:'baji', name:'八极崩', desc:'施加暗劲，一回合后爆发，结算200%伤害', level:6 },
   { id:'yanfen', name:'焰分噬浪尺', desc:'造成150%攻击伤害，并无视敌方的躲藏', story:3 },
@@ -3077,9 +3230,63 @@ function battleSkillWeight(s, b){
   if(s.id === 'lotus') return b.prepCount >= 2 ? 6 : 3;
   return s.weight || 3;
 }
+function battleBanList(kind){
+  if(!S.battleBan || !Array.isArray(S.battleBan[kind])) return [];
+  return S.battleBan[kind];
+}
+function isBattleBanned(kind, id){ return battleBanList(kind).indexOf(id) >= 0; }
+function toggleBattleBan(kind, id){
+  if(!S.battleBan) S.battleBan = { skills:[], tactics:[] };
+  const list = battleBanList(kind);
+  const idx = list.indexOf(id);
+  if(idx >= 0){
+    list.splice(idx, 1);
+  } else {
+    const max = kind === 'skills' ? 2 : 1;
+    if(list.length >= max){ toast('最多禁用 ' + max + ' 个' + (kind === 'skills' ? '斗技' : '战术')); return; }
+    list.push(id);
+  }
+  save();
+}
+function battleSkillOwned(s){
+  if(!s) return false;
+  if(s.id === 'lotus') return storyDone('佛怒火莲');
+  if(s.id === 'diyin') return !!S.diyinLearned;
+  if(s.story !== undefined) return S.story >= mapStoryOrder2(s.story);
+  if(s.level !== undefined) return S.level >= s.level;
+  return ((LEVELS[S.level] && LEVELS[S.level].tier) || 0) >= s.tier;
+}
+function battleTacticOwned(t){
+  return !!(t && ((t.id !== 'ignite' && t.id !== 'fireArmor') || hasTree('battlefire')));
+}
+function openSkillBanModal(){
+  const skills = battleBanList('skills');
+  const tactics = battleBanList('tactics');
+  const ownedSkills = BATTLE_SKILLS.filter(battleSkillOwned);
+  const ownedTactics = BATTLE_TACTICS.filter(battleTacticOwned);
+  const skillRows = ownedSkills.map(function(s){
+    const on = skills.indexOf(s.id) >= 0;
+    return '<div class="ban-row" title="' + esc(s.desc) + '"><div class="nm">' + esc(battleSkillName(s)) + '</div>' +
+      '<button class="btn sm ' + (on ? '' : 'ghost') + '" data-act="ban-skill-' + s.id + '">' + (on ? '已禁用' : '禁用') + '</button></div>';
+  }).join('') || '<div class="hint">暂无可设置斗技。</div>';
+  const tacticRows = ownedTactics.map(function(t){
+    const on = tactics.indexOf(t.id) >= 0;
+    return '<div class="ban-row" title="' + esc(t.desc) + '"><div class="nm">' + esc(t.name) + '</div>' +
+      '<button class="btn sm ' + (on ? '' : 'ghost') + '" data-act="ban-tactic-' + t.id + '">' + (on ? '已禁用' : '禁用') + '</button></div>';
+  }).join('') || '<div class="hint">暂无可设置战术。</div>';
+  const visibleSkillBans = ownedSkills.filter(function(s){ return skills.indexOf(s.id) >= 0; }).length;
+  const visibleTacticBans = ownedTactics.filter(function(t){ return tactics.indexOf(t.id) >= 0; }).length;
+  showModal('技能设置',
+    '<p class="hint">选择你 <b>不想要的技能</b>，它们不会在战斗中出现，其余技能正常随机。最多禁用 2 个斗技、1 个战术；全部留空则正常抽取。悬停技能名可查看效果。</p>' +
+    '<div class="ban-section"><div class="ban-head"><b>斗技</b><span class="tiny">已禁用 ' + visibleSkillBans + ' / 2</span></div>' + skillRows + '</div>' +
+    '<div class="ban-section"><div class="ban-head"><b>战术</b><span class="tiny">已禁用 ' + visibleTacticBans + ' / 1</span></div>' + tacticRows + '</div>' +
+    '<div class="btn-row" style="margin-top:10px"><button class="btn sm ghost" data-act="ban-clear">全部恢复</button></div>',
+    [{ t:'完成' }]);
+}
 function battleSkillPool(b){
   const tier = (LEVELS[S.level] && LEVELS[S.level].tier) || 0;
   return BATTLE_SKILLS.filter(function(s){
+    if(isBattleBanned('skills', s.id)) return false;
     if(b.skillCd && b.skillCd[s.id] > 0) return false;
     if(s.id === 'lotus') return storyDone('佛怒火莲') && b.prepCount > 0 && !b.lotusUsed;
     if(s.id === 'diyin') return !!S.diyinLearned;
@@ -3090,6 +3297,7 @@ function battleSkillPool(b){
 }
 function battleTacticPool(b){
   return BATTLE_TACTICS.filter(function(t){
+    if(isBattleBanned('tactics', t.id)) return false;
     if((t.id === 'ignite' || t.id === 'fireArmor') && !hasTree('battlefire')) return false;
     if(t.id === 'ignite' && b.flameBoost) return false;
     if(t.id === 'fireArmor' && b.fireArmor) return false;
@@ -3139,6 +3347,8 @@ function createBattle(node, P, E){
     round: 1,
     player: { name:'萧炎', hp: P * 2, maxHp: P * 2, atk: P / 5 },
     enemy: { name: storyEnemyName(node), hp: E * 2.8, maxHp: E * 2.8, atk: E / 5 },
+    prevPlayerHp: P * 2,
+    prevEnemyHp: E * 2.8,
     log: ['战斗开始。你先手。'],
     over: false,
     result: null,
@@ -3271,6 +3481,8 @@ function battleApplyAction(b, key){
   const choice = b.choices.find(function(c){ return c.key === key; });
   if(!choice || choice.disabled) return b;
   const p = b.player, e = b.enemy;
+  b.prevPlayerHp = p.hp;
+  b.prevEnemyHp = e.hp;
   b.log.push('—— 第 ' + b.round + ' 回合 ——');
   b.guard = 0; b.dodge = 0; b.enemyHide = false;
 
@@ -3320,7 +3532,7 @@ function battleApplyAction(b, key){
   } else if(choice.type === 'skill'){
     b.skillCd[skillId] = 3;
     if(skillId === 'xizhang'){
-      playerAttacked = true; playerMult = 0.8; b.nextEnemyAtkDown = 0.70;
+      playerAttacked = true; playerMult = 0.8; b.nextEnemyAtkDown = 0.50;
     } else if(skillId === 'chuihuo'){
       playerAttacked = true; playerMult = 1.10 + 0.05 * flameCountWeight();
     } else if(skillId === 'baji'){
@@ -3490,6 +3702,10 @@ function battleApplyAction(b, key){
     b.darkEnergies = remaining;
   }
 
+  const playerLost = Math.max(0, b.prevPlayerHp - p.hp);
+  const enemyLost = Math.max(0, b.prevEnemyHp - e.hp);
+  if(playerLost > p.maxHp / 3 || enemyLost > e.maxHp / 3) b.shake = true;
+
   Object.keys(b.skillCd).forEach(function(k){
     if(b.skillCd[k] > 0) b.skillCd[k]--;
   });
@@ -3527,19 +3743,28 @@ function battleLogLine(line){
   }
   return '<div class="' + cls + '">' + html + '</div>';
 }
+function battleHpBar(enemy, hp, prevHp, maxHp){
+  const pct = clamp(hp / Math.max(1, maxHp) * 100, 0, 100);
+  const prevPct = clamp((prevHp || 0) / Math.max(1, maxHp) * 100, 0, 100);
+  const lost = Math.max(0, prevPct - pct);
+  const ghost = lost > 0.05
+    ? '<b class="hp-ghost" style="left:' + pct.toFixed(2) + '%;width:' + lost.toFixed(2) + '%"></b>'
+    : '';
+  return '<div class="battle-hpbar' + (enemy ? ' enemy' : '') + '">' + ghost +
+    '<i style="width:' + pct.toFixed(1) + '%"></i><span>' + Math.round(pct) + '%</span></div>';
+}
 function battleBodyMarkup(b){
-  const pp = battleHpPct(b.player), ep = battleHpPct(b.enemy);
   const intent = '<div class="battle-intent">敌方意图：<b>' + battleIntentName(b.enemyIntent || 'attack') + '</b></div>';
   return '<div class="battle-help"><span class="battle-help-link">战斗说明</span>' +
       '<div class="battle-help-tip">战斗关卡按回合进行，每回合你从普攻/战术/斗技中选一个进行行动。斗技和战术选项从各自池子中随机抽取两个。敌方有普通攻击、蓄力、躲藏三种行动，意图会在回合开始时公开。满好感女同伴与已结识男同伴会提供暴击加成。战斗期间火种暂停，如果你刷新网页或关闭浏览器，下次进入游戏会回到战斗开始。</div></div>' +
     '<div class="battle-top">' +
       '<div class="battle-side"><div class="bs-name">' + esc(b.player.name) + '</div>' +
-        '<div class="battle-hpbar"><i style="width:' + pp.toFixed(1) + '%"></i><span>' + Math.round(pp) + '%</span></div>' +
+        battleHpBar(false, b.player.hp, b.prevPlayerHp, b.player.maxHp) +
         '<div class="bs-hp">总血量 ' + fmt(Math.round(b.player.maxHp)) + '</div>' +
         '<div class="bs-atk">攻击 ' + fmt(Math.round(b.player.atk)) + '</div></div>' +
       '<div class="battle-vs">VS</div>' +
-      '<div class="battle-side right"><div class="bs-name">' + esc(b.enemy.name) + '</div>' +
-        '<div class="battle-hpbar enemy"><i style="width:' + ep.toFixed(1) + '%"></i><span>' + Math.round(ep) + '%</span></div>' +
+      '<div class="battle-side right"><div class="bs-name' + (corruptedStoryNode(b.node) ? ' corrupt' : '') + '">' + esc(b.enemy.name) + '</div>' +
+        battleHpBar(true, b.enemy.hp, b.prevEnemyHp, b.enemy.maxHp) +
         '<div class="bs-hp">总血量 ' + fmt(Math.round(b.enemy.maxHp)) + '</div>' +
         '<div class="bs-atk">攻击 ' + fmt(Math.round(b.enemy.atk)) + '</div></div>' +
     '</div>' +
@@ -3552,6 +3777,17 @@ function renderBattle(){
   if(!BATTLE) return;
   if(BATTLE.over){ battleResult(BATTLE); return; }
   showModal(BATTLE.node && BATTLE.node.eventType === 'soulHunt' ? '魂殿追兵' : '剧情战斗', battleBodyMarkup(BATTLE), []);
+  if(BATTLE.shake){
+    const doShake = S.settings.battleShake !== false;
+    BATTLE.shake = false;
+    const card = document.querySelector('#modalRoot .modal-card');
+    if(doShake && card){
+      card.classList.remove('battle-shake');
+      void card.offsetWidth;
+      card.classList.add('battle-shake');
+      setTimeout(function(){ card.classList.remove('battle-shake'); }, 420);
+    }
+  }
 }
 function finishSoulHuntBattle(b){
   const win = !!b.result;
@@ -3734,12 +3970,10 @@ function flamePoolMissing(){
   });
 }
 function flamePoolLost(){
-  const split = S.splitFlames || [];
   return FLAMES.filter(function(f){
     return f.story === -2 &&
       S.seenFlames.indexOf(f.id) >= 0 &&
-      S.flames.indexOf(f.id) < 0 &&
-      split.indexOf(f.id) < 0;
+      S.flames.indexOf(f.id) < 0;
   });
 }
 function flamePoolSeenMissing(){
@@ -3757,6 +3991,14 @@ function realmFlameChanceMult(){
   if(tier >= 11) steps++;  // 斗帝 +20%
   return 1 + 0.05 * steps;
 }
+function flameEncounterBonus(){
+  let bonus = 0;
+  if(S.mode === 'explore') bonus += 0.25;
+  if(hasTree('flame1')) bonus += 0.50;
+  bonus += realmFlameChanceMult() - 1;
+  if(S.flameIntel > 0) bonus += 0.50;
+  return bonus;
+}
 function markEventSeen(id){
   if(!S.seenEvents || typeof S.seenEvents !== 'object') S.seenEvents = {};
   if(!S.seenEvents[id]) S.seenEvents[id] = true;
@@ -3769,10 +4011,10 @@ function doEvent(){
   const b = bonuses();
   const gm = timeGainMult();
   if(storyDone('青莲地心火')){
-    S._flamePity = (S._flamePity || 0) + 1;
+    S._flamePity = (S._flamePity || 0) + 1 + flameEncounterBonus();
     const realmFlame = realmFlameChanceMult();
     const flameChance = 0.001 * (S.mode === 'explore' ? 1.25 : 1) * (hasTree('flame1') ? 1.5 : 1) * realmFlame * (S.flameIntel > 0 ? 1.5 : 1);
-    if(S._flamePity >= 824 || rnd() < flameChance){
+    if(S._flamePity >= 900 || rnd() < flameChance){
       const miss = flamePoolMissing();
       if(miss.length){
         const f = pickOne(miss);
@@ -4443,17 +4685,38 @@ function rebirthBreakdown(){
   const mem2 = hasTree('mem2') ? Math.round(base * 0.40) : 0;
   const rcry = Math.round(base * 0.03 * ((S.repeat && S.repeat.rcry) || 0));
   const adjusted = base + mem1 + mem2 + rcry;
-  const corrBonus = Math.round(adjusted * 0.06 * (S.corruption || 0));
+  const corrBonus = Math.round(adjusted * 0.06 * clamp(S.corruption || 0, 0, 5));
   const total = Math.max(1, adjusted + corrBonus + parts.diyan);
   return { parts: parts, base: base, mem1: mem1, mem2: mem2, rcry: rcry, adjusted: adjusted, corrBonus: corrBonus, total: total };
 }
 function rebirthGain(){ return rebirthBreakdown().total; }
-function canRebirth(){ return phase() !== 'orange' || S.wick <= 0; }
+function rebirthAvailable(){ return S.rebirthUnlocked || S.story >= NODES.length; }
+function corruptionEffectsSummary(n){
+  const lv = clamp(n || 1, 1, 8);
+  const eff = Math.min(lv, 5);
+  let txt = '升级所需斗气 +' + (eff * 10) + '% · 剧情/野外敌人 ×' + (1 + eff * 0.2).toFixed(2) +
+    ' · 轮回火晶 +' + (eff * 6) + '%';
+  if(lv >= 5) txt += '<br>敌人狂暴 +4%/回合，开场无敌盾 2 层';
+  else if(lv === 4) txt += '<br>敌人狂暴 +3%/回合，开场无敌盾 1 层';
+  else if(lv === 3) txt += '<br>敌人狂暴：每回合攻击 +3%';
+  if(lv === 5) txt += '<br>首次通关 5 档（成为斗帝并击败魂天帝）可获得蚀魂印记，解锁 6–8 档侵蚀';
+  if(lv >= 2) txt += '<br>' + (lv >= 4 ? '魂殿追兵出现概率更高' : '会出现魂殿追兵');
+  if(lv >= 8){
+    txt += '<br>所有修为丹效果 -50%；每个剧情节点 20% 概率邪化（敌人 ×1.5）';
+    txt += '<br>敌人战力成长系数 1.30 → 1.31';
+  } else if(lv >= 7){
+    txt += '<br>所有修为丹效果 -50%；每个剧情节点 20% 概率邪化（敌人 ×1.5）';
+  } else if(lv >= 6){
+    txt += '<br>所有修为丹效果 -20%；每个剧情节点 10% 概率邪化（敌人 ×1.5）';
+  }
+  return txt;
+}
+function canRebirth(){ return S.story >= NODES.length || phase() !== 'orange' || S.wick <= 0; }
 function rebirth(){
   if(S.mode === 'seclusion') return { ok:false, msg:'闭关中无法轮回' };
   if(!canRebirth()) return { ok:false, msg:'火种尚旺，无需轮回' };
   const gain = rebirthGain();
-  const nextCorr = clamp(S.nextCorruption || 1, 1, 5);
+  const nextCorr = (!S.soulMark ? Math.min(clamp(S.nextCorruption || 1, 1, 8), 5) : clamp(S.nextCorruption || 1, 1, 8));
   S.rebirthUnlocked = true;
   S.crystals += gain;
   S.stats.rebirths++;
@@ -4499,7 +4762,7 @@ function rebirth(){
   S.alchemyExp = ALCH_T[S.alchemyLevel] || 0;
   S.fireCult = { power:0, alchemy:0, pill:0, lotus:0, seclusion:0 };
   S.splitOriginTimer = 0;
-  S.alchemyUpgrade = { yield:0, core:0, herb:0, frugal:0, coreOn:false, herbOn:false };
+  S.alchemyUpgrade = { yield:0, core:0, herb:0, frugal:0 };
   S.merchant = { initialized:false, slots:[null,null], mysteryUsed:{ intel:false, crystal:false, wick:false }, mysteryCount:0 };
   S.traveler = { done:false, rescued:false, returnCount:0, returnDone:false };
   S.flameResidualUsed = false;
@@ -4751,7 +5014,7 @@ const SAVE_KEY_NAMES = [
   'skipUnlockPopups','yield','core','herb','frugal','coreOn','herbOn','power','alchemy','pill',
   'lotus','seclusion','initialized','slots','mysteryUsed','mysteryCount','done','rescued',
   'returnCount','returnDone','intel','crystal','order','readyAt','kind','resource','amount',
-  'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text','splitOriginTimer'
+  'qi','mysteryType','pillId','type','quality','createdAt','cycle','t','text','splitOriginTimer','battleBan','battleShake','soulMark'
 ];
 const SAVE_ALPHA = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function buildSaveKeyMap(names){
@@ -5015,6 +5278,23 @@ function normalizeFlameSources(o){
     }
   });
 }
+function normalizeBattleBan(o){
+  if(!o.battleBan || typeof o.battleBan !== 'object' || Array.isArray(o.battleBan)){
+    o.battleBan = { skills:[], tactics:[] };
+  }
+  const skillIds = {}, tacticIds = {};
+  BATTLE_SKILLS.forEach(function(s){ skillIds[s.id] = true; });
+  BATTLE_TACTICS.forEach(function(t){ tacticIds[t.id] = true; });
+  const clean = function(arr, ids, max){
+    const out = [];
+    (Array.isArray(arr) ? arr : []).forEach(function(id){
+      if(ids[id] && out.indexOf(id) < 0 && out.length < max) out.push(id);
+    });
+    return out;
+  };
+  o.battleBan.skills = clean(o.battleBan.skills, skillIds, 2);
+  o.battleBan.tactics = clean(o.battleBan.tactics, tacticIds, 1);
+}
 function loadGame(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
@@ -5035,6 +5315,7 @@ function loadGame(){
     if(!Array.isArray(o.partners)) o.partners = ['yaolao'];
     if(!Array.isArray(o.seenFlames)) o.seenFlames = [];
     normalizeFlameSources(o);
+    normalizeBattleBan(o);
     if(!o.flameFirst || typeof o.flameFirst !== 'object') o.flameFirst = {};
     if(!Array.isArray(o.seenPartners)) o.seenPartners = ['yaolao'];
     if(!Array.isArray(o.milestones)) o.milestones = [];
@@ -5068,6 +5349,7 @@ function loadGame(){
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
     if(o.settings.ashDim === undefined) o.settings.ashDim = true;
+    if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
@@ -5094,13 +5376,11 @@ function loadGame(){
     const legacyControl = Math.max(0, +o.control || 0);
     if(legacyControl > 0) o.fireCult.lotus = Math.max(o.fireCult.lotus, Math.min(10, legacyControl));
     o.control = o.fireCult.lotus;
-    if(!o.alchemyUpgrade || typeof o.alchemyUpgrade !== 'object') o.alchemyUpgrade = { yield:0, core:0, herb:0, coreOn:false, herbOn:false };
+    if(!o.alchemyUpgrade || typeof o.alchemyUpgrade !== 'object') o.alchemyUpgrade = { yield:0, core:0, herb:0, frugal:0 };
     o.alchemyUpgrade.yield = clamp(o.alchemyUpgrade.yield | 0, 0, 5);
     o.alchemyUpgrade.core = clamp(o.alchemyUpgrade.core | 0, 0, 2);
     o.alchemyUpgrade.herb = clamp(o.alchemyUpgrade.herb | 0, 0, 2);
     o.alchemyUpgrade.frugal = clamp(o.alchemyUpgrade.frugal | 0, 0, 1);
-    o.alchemyUpgrade.coreOn = !!o.alchemyUpgrade.coreOn;
-    o.alchemyUpgrade.herbOn = !!o.alchemyUpgrade.herbOn;
     o.flameIntel = Math.max(0, +o.flameIntel || 0);
     o.flameResidualUsed = !!o.flameResidualUsed;
     o.soulHuntDefeated = !!o.soulHuntDefeated;
@@ -5122,11 +5402,14 @@ function loadGame(){
     o.story = clamp(o.story | 0, 0, NODES.length);
     o.cycle = Math.max(1, o.cycle | 0);
     o.rebirthUnlocked = !!o.rebirthUnlocked || o.cycle > 1;
-    o.corruption = clamp(o.corruption | 0, 0, 5);
+    o.soulMark = !!o.soulMark;
+    o.corruption = clamp(o.corruption | 0, 0, 8);
     if(o.cycle <= 1) o.corruption = 0;
     else if(o.corruption < 1) o.corruption = 1;
+    if(!o.soulMark) o.corruption = Math.min(o.corruption, 5);
     if(o.nextCorruption === undefined) o.nextCorruption = Math.max(1, o.corruption || 1);
-    o.nextCorruption = clamp(o.nextCorruption | 0, 1, 5);
+    o.nextCorruption = clamp(o.nextCorruption | 0, 1, 8);
+    if(!o.soulMark) o.nextCorruption = Math.min(o.nextCorruption, 5);
     o.wickMax = calcWickMaxFor(o);
     o.wick = clamp(o.wick, 0, o.wickMax);
     o.lastSave = Date.now();
@@ -5209,6 +5492,7 @@ function calcWickMaxFor(o){
 function tick(dt){
   if(!S || !(dt > 0)) return;
   checkXunerDiyin();
+  maybeGrantSoulMark();
   dt = Math.min(dt, 2);
   S.stats.playTime += dt;
   S.stats.runTime += dt;
@@ -5230,6 +5514,9 @@ function tick(dt){
       log('火种已成灰烬。本源火种将熄，可入轮回重燃火种。', 'log-bad');
       if(typeof onAsh === 'function' && !HERB_GUARD) onAsh();
     }
+  }
+  if(S.mode === 'seclusion' && S.level >= MAX_LEVEL){
+    exitSeclusion('已至斗帝');
   }
 
   // 计时器
@@ -5585,7 +5872,7 @@ function renderHUD(){
     let countdown, effect;
     if(ph === 'ash'){
       countdown = '火种将熄';
-      effect = '挂机效率与战力 -' + (hasTree('ash1') ? '50' : '80') + '%';
+      effect = '挂机效率 -' + (hasTree('ash1') ? '50' : '80') + '% · 战力 -20%';
     } else {
       const nextRatio = ph === 'red' ? (1 - PHASE_2) : (1 - PHASE_1);
       const left = Math.max(0, S.wick - S.wickMax * nextRatio);
@@ -5596,7 +5883,8 @@ function renderHUD(){
       '<div class="et-line">火种随时间流逝，燃尽后将寸步难行；从暗红阶段开始可以进入轮回，进入灰烬阶段后只能用燃命一击挑战最后一次剧情</div>' +
       '<div class="et-line" style="margin-top:4px">当前阶段：<b>' + phaseName() + '</b></div>' +
       '<div class="et-line">阶段倒计时：<b>' + countdown + '</b></div>' +
-      '<div class="et-line">当前效果：<b>' + effect + '</b></div>';
+      '<div class="et-line">当前效果：<b>' + effect + '</b></div>' +
+      '<div class="et-line">从奇遇中遇到异火的概率不会因为火种熄灭而降低。</div>';
   }
   if($('timeBuffLine')){
     const on = S.timeBuff > 0;
@@ -5619,12 +5907,13 @@ function renderStoryCard(force){
   if(!body) return;
   if(!n){
     if($('storyCooldown')) $('storyCooldown').hidden = true;
-    body.innerHTML = '<div class="empty">此世剧情已尽。<br>可入轮回，再走一遭。</div>';
+    body.innerHTML = '<div class="empty">此世剧情已尽。<br>即便火种未入暗红，也可以入轮回。</div>';
     return;
   }
   const info = canChallenge(n);
   const E = nodeEnemy(n);
   const w = nodeWin(n);
+  const corrupt = corruptedStoryNode(n);
   const ash = phase() === 'ash';
   const ashSpent = ash && S.ashStrikeUsed;
   const skipReady = !ash && info.ok && canSkipStoryBattle(n, power(), E);
@@ -5638,7 +5927,8 @@ function renderStoryCard(force){
       : (skipReady ? '战力达标，将按正常胜利结算。' : (info.ok ? '' : info.why)));
   body.innerHTML =
     '<div class="story-head">' +
-      '<div><div class="story-name">' + esc(n.title) + (n.side ? '<span class="badge" style="margin-left:6px">支线</span>' : '') + '</div><div class="tiny">' + esc(n.place) + '</div></div>' +
+      '<div><div class="story-name' + (corrupt ? ' corrupt' : '') + '">' + esc(n.title) + (n.side ? '<span class="badge" style="margin-left:6px">支线</span>' : '') +
+        (corrupt ? '<span class="badge corrupt" style="margin-left:6px">邪化</span>' : '') + '</div><div class="tiny">' + esc(n.place) + '</div></div>' +
       '<div class="story-badges">' +
         '<span class="badge ' + (badgeOn ? 'on' : '') + '" id="storyBadge">' + badgeText + '</span>' +
         (nodeHasEnemy(n) ? '<span class="badge purple">需要战斗</span>' : '') +
@@ -5646,7 +5936,7 @@ function renderStoryCard(force){
     '</div>' +
     '<div class="story-desc">' + esc(n.desc) + '</div>' +
     '<div class="story-meta">' +
-      '<span>' + (nodeHasEnemy(n) ? '敌方战力' : '战力') + ' <b id="nodeEnemy">' + fmt(E) + '</b></span>' +
+      '<span>' + (nodeHasEnemy(n) ? '敌方战力' : '战力') + ' <b id="nodeEnemy" class="' + (corrupt ? 'corrupt' : '') + '">' + fmt(E) + '</b></span>' +
       (nodeHasEnemy(n) ? '<span>战况 <b id="nodeWin">' + battleOddsLabel(w) + '</b></span>' : '<span>胜率 <b id="nodeWin">' + (S.story === 0 ? '-' : pct(w)) + '</b></span>') +
       (n.key ? '<span>丹药 <b class="' + ((S.pills[n.key] || 0) > 0 ? 'ok' : 'no') + '" id="nodeKey">' + PILL_BY_ID[n.key].name + '</b></span>' : '') +
       (n.title === '双帝之战' ? '<span>帝炎 <b class="' + (S.flames.indexOf('diyan') >= 0 ? 'ok' : 'no') + '" id="nodeFlame">' + (S.flames.indexOf('diyan') >= 0 ? '已成' : '未成') + '</b></span>' : '') +
@@ -5782,7 +6072,7 @@ function renderCultivateDynamic(){
       pb.className = 'phase-banner' + (ph === 'ash' ? ' ash' : '');
       pb.innerHTML = ph === 'red'
         ? '火种转入暗红，挂机效率与战力 <b>-20%</b>。可入轮回，也可再搏一程。'
-        : '火种已成灰烬，挂机效率与战力 <b>-' + (hasTree('ash1') ? '50' : '80') + '%</b>。<br>本源火种将熄，可入轮回重燃火种。';
+        : '火种已成灰烬，挂机效率 <b>-' + (hasTree('ash1') ? '50' : '80') + '%</b>，战力 <b>-20%</b>。<br>本源火种将熄，可入轮回重燃火种。';
     }
   }
   // 挂机
@@ -5928,16 +6218,21 @@ function renderLotus(){
   if(!box) return;
   const on = lotusUnlocked();
   if($('lotusState')) $('lotusState').textContent = on ? ('火莲修炼 ' + fireCultLevel('lotus') + ' 重') : '未解锁';
-  if(!on){
-    box.innerHTML = '<div class="hint">至少收服两种异火，方可尝试把两种火焰强行相融。<br>火莲一旦炸开，越阶斩敌亦非不可能。</div>';
-    return;
-  }
-  box.innerHTML =
+  const content =
     '<div class="hint" style="margin-bottom:8px">两种异火相融，化作一朵火莲。触发时战力暴涨，但异火狂暴，亦有反噬之险。</div>' +
     '<div class="stat-line"><span class="k">触发概率</span><span class="v">' + pct(lotusProc()) + '</span></div>' +
     '<div class="stat-line"><span class="k">伤害倍率</span><span class="v">×' + lotusPower().toFixed(2) + '</span></div>' +
     '<div class="stat-line"><span class="k">火莲效果</span><span class="v">' + fireCultLevel('lotus') + ' / 10 重</span></div>' +
     '<div class="hint">火莲效果可在下方「异火修炼」中提升。</div>';
+  if(!on){
+    box.innerHTML =
+      '<div class="feature-blur-wrap">' +
+        '<div class="feature-blur-content">' + content + '</div>' +
+        '<div class="feature-lock"><span>解锁条件：拥有至少两种异火，或已合成帝炎</span></div>' +
+      '</div>';
+    return;
+  }
+  box.innerHTML = content;
 }
 function renderFireCult(){
   const card = $('fireCultCard');
@@ -5948,30 +6243,38 @@ function renderFireCult(){
   if(!on){ box.innerHTML = ''; return; }
   const rows = [];
   Object.keys(FIRE_CULT_DEFS).forEach(function(id){
-    if(!fireCultUnlocked(id)) return;
     const d = FIRE_CULT_DEFS[id];
+    const unlocked = fireCultUnlocked(id);
     const lv = fireCultLevel(id);
     const cost = fireCultCost(id);
     const maxed = lv >= d.max;
-    const can = !maxed && S.qi >= cost.qi && S.cores >= cost.core;
+    const can = unlocked && !maxed && S.qi >= cost.qi && S.cores >= cost.core;
     let effect = d.eff;
     if(id === 'power') effect = '当前战力 +' + (lv * 3).toFixed(1) + '%';
     else if(id === 'alchemy') effect = '当前炼丹成功率 +' + (lv * 1.2).toFixed(1) + '%';
     else if(id === 'pill') effect = '当前修为丹效果 +' + (lv * 2) + '%';
     else if(id === 'lotus') effect = '火莲触发 ' + pct(lotusProc()) + ' · 威力 ×' + lotusPower().toFixed(2);
     else if(id === 'seclusion') effect = '闭关斗气 +' + (lv * 3) + '% · 闭关突破 +' + (lv * 0.5).toFixed(1) + '%';
-    rows.push(
-      '<div class="fc-row">' +
+    const lockText = id === 'lotus'
+      ? '解锁条件：拥有至少两种异火，或已合成帝炎'
+      : '解锁条件：通关剧情「' + MODE_UNLOCKS.seclusion.title + '」';
+    const content =
+      '<div class="fc-content">' +
         '<div class="fc-head"><span><b>' + d.name + '</b> <span class="tiny">Lv.' + lv + ' / ' + d.max + '</span></span>' +
           '<span class="tiny">' + effect + '</span></div>' +
         '<div class="btn-row" style="margin-top:4px">' +
           '<button class="btn sm" data-act="fc-' + id + '" ' + (!can ? 'disabled' : '') + '>' + (maxed ? '已圆满' : '修炼') + '</button>' +
           '<span class="tiny">消耗斗气 ' + fmt(cost.qi) + (cost.core ? ' · 魔核 ' + fmt(cost.core) : '') + '</span>' +
         '</div>' +
+      '</div>';
+    rows.push(
+      '<div class="fc-row' + (unlocked ? '' : ' locked') + '">' +
+        content +
+        (unlocked ? '' : '<div class="fc-lock"><span>' + lockText + '</span></div>') +
       '</div>'
     );
   });
-  box.innerHTML = '<div class="hint" style="margin-bottom:8px">消耗斗气进行异火修炼；火莲修炼与闭关修炼需要先解锁对应功能。</div>' + rows.join('');
+  box.innerHTML = '<div class="hint" style="margin-bottom:8px">消耗斗气进行异火修炼。</div>' + rows.join('');
 }
 function renderDiyan(){
   const box = $('diyanBody');
@@ -6022,9 +6325,11 @@ function renderRecipes(force){
     const fch = craftChance(p, true);
     const fcan = canCraft(p, true);
     const node = NODES.find(function(n){ return n.key === p.id; });
+    const need = p.type === 'key' ? Math.max(1, p.tier - 2) : Math.max(1, p.tier - 1);
+    const locked = S.alchemyLevel < need;
     const over = p.type === 'qi' && p.maxLevel !== undefined && S.level > p.maxLevel;
     const pity = (S.craftFailStreak && S.craftFailStreak[p.id]) > 0;
-    return '<div class="recipe">' +
+    return '<div class="recipe' + (locked ? ' locked' : '') + '">' +
       '<div class="pillicon t' + (p.type === 'break' ? '2' : (p.type === 'key' ? '3' : '1')) + '"></div>' +
       '<div class="main">' +
         '<div class="nm">' + esc(p.name) + '<span class="tier">' + p.tier + ' 品</span>' +
@@ -6039,6 +6344,7 @@ function renderRecipes(force){
         '<button class="btn sm" data-craft="' + p.id + '">炼制</button>' +
         (frugal ? '<button class="btn sm ghost" data-craft-frugal="' + p.id + '" ' + (fcan.ok ? '' : 'disabled') + ' title="药材 ' + fmt(fcost.herb) + ' · 魔核 ' + fcost.core + ' · 成丹率 ' + pct(fch) + '">减料</button>' : '') +
       '</div>' +
+      (locked ? '<div class="feature-lock"><span>解锁条件：成为' + CN[need] + '品炼药师</span></div>' : '') +
     '</div>';
   }).join('');
 }
@@ -6097,34 +6403,26 @@ function renderAlchemyUpgrades(){
     if(id === 'yield'){
       effect = '成功炼丹额外获得当前境界需求斗气 +' + (lv ? (1 + 0.3 * lv).toFixed(1) : '0') + '%';
     } else if(id === 'core'){
-      const pct = lv === 1 ? 30 : (lv >= 2 ? 50 : 0);
-      const bonus = lv === 1 ? 3 : (lv >= 2 ? 5 : 0);
-      effect = lv ? ('额外魔核 +' + pct + '%，成丹率 +' + bonus + '%') : '额外投入魔核，提高成丹率';
+      const pct = lv === 1 ? 15 : (lv >= 2 ? 25 : 0);
+      effect = lv ? ('炼丹魔核消耗 -' + pct + '%') : '减少炼丹魔核消耗';
     } else if(id === 'frugal'){
-      effect = lv ? '已解锁减料炼丹：六成材料，成丹率减半；不与添薪叠加，不影响药效' : '解锁一种以六成材料炼丹的策略';
+      effect = lv ? '已解锁减料炼丹：六成材料，成丹率减半；不影响药效' : '解锁一种以六成材料炼丹的策略';
     } else {
-      const pct = lv === 1 ? 30 : (lv >= 2 ? 50 : 0);
-      const bonus = lv === 1 ? 10 : (lv >= 2 ? 15 : 0);
-      effect = lv ? ('额外药材 +' + pct + '%，药效 +' + bonus + '%') : '额外投入药材，提高药效';
-    }
-    let toggle = '';
-    if((id === 'core' || id === 'herb') && lv > 0){
-      const on = id === 'core' ? !!S.alchemyUpgrade.coreOn : !!S.alchemyUpgrade.herbOn;
-      toggle = '<button class="btn sm ' + (on ? '' : 'ghost') + '" data-act="alch-' + id + '-toggle">' + (on ? '已开启' : '已关闭') + '</button>';
+      const pct = lv === 1 ? 10 : (lv >= 2 ? 20 : 0);
+      effect = lv ? ('炼丹药材消耗 -' + pct + '%') : '减少炼丹药材消耗';
     }
     const costText = '消耗斗气 ' + fmt(cost.qi) + (cost.herb > 0 ? ' · 药材 ' + fmt(cost.herb) : '');
     rows.push(
       '<div class="fc-row">' +
         '<div class="fc-head"><span><b>' + d.name + '</b> <span class="tiny">Lv.' + lv + ' / ' + d.max + '</span></span><span class="tiny">' + effect + '</span></div>' +
         '<div class="btn-row" style="margin-top:4px">' +
-          toggle +
           '<button class="btn sm" data-act="alch-' + id + '" ' + (!can ? 'disabled' : '') + '>' + (maxed ? '已圆满' : '提升') + '</button>' +
           '<span class="tiny">' + costText + '</span>' +
         '</div>' +
       '</div>'
     );
   });
-  box.innerHTML = '<div class="hint" style="margin-bottom:8px">四项强化独立提升；魔核添薪与药材凝效解锁后可在下方开启或关闭。</div>' + rows.join('');
+  box.innerHTML = '<div class="hint" style="margin-bottom:8px">四项强化独立提升。</div>' + rows.join('');
 }
 function renderLastPill(){
   const box = $('lastPillBody');
@@ -6347,6 +6645,7 @@ function showSettings(){
       '<div class="settings-h">界面</div>' +
       '<div class="switch"><div class="lb">跳过已看过的功能解锁弹窗<small>仅跳过曾经看过的解锁介绍</small></div><div class="sw" id="swSkipUnlock"></div></div>' +
       '<div class="switch"><div class="lb">灰烬阶段背景变暗<small>关闭后灰烬阶段保持正常亮度</small></div><div class="sw" id="swAshDim"></div></div>' +
+      '<div class="switch"><div class="lb">战斗大伤害抖动<small>受到超过最大生命三分之一的伤害时抖动战斗窗口</small></div><div class="sw" id="swBattleShake"></div></div>' +
     '</div>' +
     '<div class="settings-block">' +
       '<div class="settings-h">图鉴收集</div>' +
@@ -6370,12 +6669,32 @@ function showSettings(){
     '<div class="settings-block">' +
       '<div class="settings-h">敌人增幅</div>' +
       '<div class="stat-line"><span class="k">本周目侵蚀度</span><span class="v">' + (S.corruption || 0) + ' 档 · 敌人 ×' + cm.toFixed(2) + '</span></div>' +
-      '<div class="tiny" style="margin-top:6px">侵蚀度每档使升级所需斗气 +10%、剧情/野外敌人 +20%、轮回火晶 +6%，最多 5 档；一周目为 0 档，二周目起最低 1 档。</div>' +
+      '<div class="tiny" style="margin-top:6px">侵蚀度 1–5 档每档使升级所需斗气 +10%、剧情/野外敌人 +20%、轮回火晶 +6%；6–8 档这些数值与 5 档相同。一周目为 0 档，二周目起最低 1 档；6 档以上需蚀魂印记。</div>' +
     '</div>' +
     '<div class="settings-block">' +
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.2.8</span><span class="cl-date">2026-11-11</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li><b>火晶升级</b>：悬停显示前置、境界与剧情条件；火晶不足不再占用提示，锁定框保持正常黑底</li>' +
+            '<li><b>条件功能模糊化</b>：异火修炼未解锁项、佛怒火莲、商会 / 轮回页签、等级不足丹方改为常驻模糊展示并标注条件</li>' +
+            '<li><b>自动挑战</b>：无战斗剧情按胜率阈值；可跳过的回合战斗按战力达标自动执行</li>' +
+            '<li><b>佛怒火莲剧情</b>：按小说版改为天蛇府黑蛇巢、八翼黑蛇皇；首次通关新增初战讲解、反噬代价与修炼入口</li>' +
+            '<li><b>炼丹强化</b>：原「魔核添薪 / 药材凝效」改为「魔核省炼 / 药材省炼」，分别减少魔核 15% / 25%、药材 10% / 20% 消耗，移除开关</li>' +
+            '<li><b>技能设置</b>：剧情卡新增入口，最多禁用 2 个斗技、1 个战术；只显示已获得技能，悬停查看效果，留空正常随机</li>' +
+            '<li><b>战斗表现</b>：血条损失段先高亮再收缩；单次伤害超过最大生命三分之一时窗口抖动，可在设置关闭；吸掌减伤改为 50%</li>' +
+            '<li><b>导航与魂力</b>：导航改为两行，新增傀儡占位页与魂力页；魂力页显示蚀魂印记</li>' +
+            '<li><b>轮回</b>：通关最后一个剧情节点后，即使火种尚在橙红也可进入轮回</li>' +
+            '<li><b>野生异火</b>：保底改为 900 点内部进度，每次按「1 + 全部遇火加成」增加；修复斗帝后闭关卡住奇遇，以及图鉴遗失异火无法补回的问题</li>' +
+            '<li><b>灰烬阶段</b>：挂机效率仍为 -80%，战力只下降 20%；不灭余烬只减免挂机效率惩罚；火种说明补充遇火概率不会因熄灭降低</li>' +
+            '<li><b>聚气散</b>：额外斗气由 3000 点下调为 2000 点</li>' +
+            '<li><b>侵蚀 6–8 档</b>：基础需求、敌人增幅与火晶收益同 5 档；6 档修为丹 -20% 且节点 10% 邪化，7 档修为丹 -50% 且邪化 20%，8 档额外使敌人成长系数 1.30 → 1.31；邪化节点与战斗敌人使用特殊样式</li>' +
+            '<li><b>蚀魂印记</b>：首次在 5 档侵蚀下成为斗帝并击败魂天帝获得；持有后才能选择 6–8 档侵蚀</li>' +
+            '<li><b>后续计划</b>：预计在 v0.3.0 完成傀儡系统与灵魂力量修炼内容</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.2.7</span><span class="cl-date">2026-11-10</span></summary>' +
           '<ul class="cl-list">' +
             '<li>「入轮回」补充分焰永久继承说明，重置列表增加焚诀等级与修炼进度</li>' +
@@ -6638,6 +6957,15 @@ function showSettings(){
       toast(S.settings.ashDim !== false ? '已开启：灰烬阶段背景变暗' : '已关闭：灰烬阶段背景变暗');
     });
   }
+  syncSwitch('swBattleShake', S.settings.battleShake !== false);
+  if($('swBattleShake')){
+    $('swBattleShake').addEventListener('click', function(){
+      S.settings.battleShake = !(S.settings.battleShake !== false);
+      save();
+      syncSwitch('swBattleShake', S.settings.battleShake !== false);
+      toast(S.settings.battleShake !== false ? '已开启：战斗大伤害抖动' : '已关闭：战斗大伤害抖动');
+    });
+  }
 }
 async function handleSetting(act){
   if(act === 'save'){
@@ -6666,6 +6994,7 @@ async function handleSetting(act){
       if(!Array.isArray(o.partners)) o.partners = ['yaolao'];
       if(!Array.isArray(o.seenFlames)) o.seenFlames = [];
     normalizeFlameSources(o);
+    normalizeBattleBan(o);
     if(!o.flameFirst || typeof o.flameFirst !== 'object') o.flameFirst = {};
       if(!Array.isArray(o.seenPartners)) o.seenPartners = ['yaolao'];
     if(!Array.isArray(o.milestones)) o.milestones = [];
@@ -6697,6 +7026,7 @@ async function handleSetting(act){
     if(!o.settings) o.settings = d.settings;
     if(o.settings.skipUnlockPopups === undefined) o.settings.skipUnlockPopups = false;
     if(o.settings.ashDim === undefined) o.settings.ashDim = true;
+    if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
@@ -6723,13 +7053,11 @@ async function handleSetting(act){
     const legacyControl = Math.max(0, +o.control || 0);
     if(legacyControl > 0) o.fireCult.lotus = Math.max(o.fireCult.lotus, Math.min(10, legacyControl));
     o.control = o.fireCult.lotus;
-    if(!o.alchemyUpgrade || typeof o.alchemyUpgrade !== 'object') o.alchemyUpgrade = { yield:0, core:0, herb:0, coreOn:false, herbOn:false };
+    if(!o.alchemyUpgrade || typeof o.alchemyUpgrade !== 'object') o.alchemyUpgrade = { yield:0, core:0, herb:0, frugal:0 };
     o.alchemyUpgrade.yield = clamp(o.alchemyUpgrade.yield | 0, 0, 5);
     o.alchemyUpgrade.core = clamp(o.alchemyUpgrade.core | 0, 0, 2);
     o.alchemyUpgrade.herb = clamp(o.alchemyUpgrade.herb | 0, 0, 2);
     o.alchemyUpgrade.frugal = clamp(o.alchemyUpgrade.frugal | 0, 0, 1);
-    o.alchemyUpgrade.coreOn = !!o.alchemyUpgrade.coreOn;
-    o.alchemyUpgrade.herbOn = !!o.alchemyUpgrade.herbOn;
     o.flameIntel = Math.max(0, +o.flameIntel || 0);
     o.flameResidualUsed = !!o.flameResidualUsed;
     o.soulHuntDefeated = !!o.soulHuntDefeated;
@@ -6751,11 +7079,14 @@ async function handleSetting(act){
       o.story = clamp(o.story | 0, 0, NODES.length);
       o.cycle = Math.max(1, o.cycle | 0);
     o.rebirthUnlocked = !!o.rebirthUnlocked || o.cycle > 1;
-    o.corruption = clamp(o.corruption | 0, 0, 5);
+    o.soulMark = !!o.soulMark;
+    o.corruption = clamp(o.corruption | 0, 0, 8);
     if(o.cycle <= 1) o.corruption = 0;
     else if(o.corruption < 1) o.corruption = 1;
+    if(!o.soulMark) o.corruption = Math.min(o.corruption, 5);
     if(o.nextCorruption === undefined) o.nextCorruption = Math.max(1, o.corruption || 1);
-    o.nextCorruption = clamp(o.nextCorruption | 0, 1, 5);
+    o.nextCorruption = clamp(o.nextCorruption | 0, 1, 8);
+    if(!o.soulMark) o.nextCorruption = Math.min(o.nextCorruption, 5);
       o.wickMax = calcWickMaxFor(o);
       o.wick = clamp(o.wick, 0, o.wickMax);
       o._noSave = false;
@@ -6830,13 +7161,33 @@ function renderTree(force){
     const storyLocked = t.story && !storyEverDone(t.story);
     const levelLocked = t.level && maxLevelEver() < t.level;
     const locked = reqLocked || storyLocked || levelLocked;
-    let tip = '';
+    const conds = [];
+    if(t.req.length){
+      conds.push((reqLocked ? '需先点亮：' : '前置已完成：') + t.req.map(function(r){
+        return TREE_BY_ID[r] ? '「' + TREE_BY_ID[r].name + '」' : r;
+      }).join('、'));
+    }
+    if(t.story){
+      conds.push((storyLocked ? '需通关剧情：' : '剧情已完成：') + '「' + t.story + '」');
+    }
+    if(t.level){
+      conds.push((levelLocked ? '需达到境界：' : '境界已达到：') + (LEVELS[t.level] ? LEVELS[t.level].name : t.level));
+    }
+    let effectTip = '';
     if(t.id === 'battlefire'){
-      tip = '<div class="node-tip"><b>引火</b>：不攻击，本场战斗所有伤害 ×1.3；使用后本场不再出现。<br><b>火铠</b>：不攻击，本场受到伤害 -10%，且不会被暴击；使用后本场不再出现。</div>';
+      effectTip = '<b>引火</b>：不攻击，本场战斗所有伤害 ×1.3；使用后本场不再出现。<br><b>火铠</b>：不攻击，本场受到伤害 -10%，且不会被暴击；使用后本场不再出现。';
     } else if(t.id === 'timecry' || t.id === 'timecry2'){
       const mins = t.id === 'timecry2' ? 30 : Math.round(timeCrystalDuration() / 60);
-      tip = '<div class="node-tip"><b>时空结晶效果</b>：燃烧后持续 ' + mins + ' 分钟，火种流逝 ×2，斗气 / 药材 / 魔核获取 ×3，奇遇频率 ×3。<br>丹药提供的斗气不受影响。</div>';
+      effectTip = '<b>时空结晶效果</b>：燃烧后持续 ' + mins + ' 分钟，火种流逝 ×2，斗气 / 药材 / 魔核获取 ×3，奇遇频率 ×3。<br>丹药提供的斗气不受影响。';
     }
+    let tip = '';
+    if(conds.length){
+      tip += '<div><b>解锁条件</b><br>' + conds.join('<br>') + '</div>';
+    }
+    if(effectTip){
+      tip += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.12)">' + effectTip + '</div>';
+    }
+    if(tip) tip = '<div class="node-tip">' + tip + '</div>';
     return '<div class="node ' + (owned ? 'owned' : '') + (locked && !owned ? ' locked' : '') + '">' +
       '<div class="nm">' + esc(t.name) + '</div>' +
       '<div class="ds">' + esc(t.desc) + '</div>' +
@@ -6866,9 +7217,12 @@ function renderRebirth(){
   if($('cryGain')) $('cryGain').textContent = fmt(bd.total);
   const can = canRebirth();
   if($('rebirthWhy')){
+    const allStory = S.story >= NODES.length;
     $('rebirthWhy').innerHTML = can
-      ? '火种已入' + phaseName() + '，可入轮回。轮回后保留火晶、商店加成与图鉴，重置境界、剧情、异火与丹药。'
-      : '火种尚在橙红，需转入暗红后才可轮回。';
+      ? (allStory && phase() === 'orange'
+        ? '此世剧情已尽。即便火种尚在橙红，现在也可以入轮回。轮回后保留火晶、商店加成与图鉴，重置境界、剧情、异火与丹药。'
+        : '火种已入' + phaseName() + '，可入轮回。轮回后保留火晶、商店加成与图鉴，重置境界、剧情、异火与丹药。')
+      : '火种尚在橙红，需转入暗红或通关全部剧情后才可轮回。';
   }
   if($('rebirthBreakdown')){
     const row = function(label, val, cls, plus){
@@ -6883,22 +7237,22 @@ function renderRebirth(){
     if(bd.mem1) html += row('轮回记忆·一 +35%', bd.mem1, '', true);
     if(bd.mem2) html += row('轮回记忆·二 +40%', bd.mem2, '', true);
     if(bd.rcry) html += row('火晶共鸣 · ' + S.repeat.rcry + ' 级', bd.rcry, '', true);
-    if(bd.corrBonus) html += row('侵蚀度 · ' + S.corruption + ' 档 +' + (S.corruption * 6) + '%', bd.corrBonus, '', true);
+    if(bd.corrBonus) html += row('侵蚀度 · ' + S.corruption + ' 档 +' + (Math.min(S.corruption, 5) * 6) + '%', bd.corrBonus, '', true);
     html += row('本次轮回合计', bd.total, 'total', false);
     $('rebirthBreakdown').innerHTML = html;
   }
   const btn = $('rebirthBtn');
   if(btn) btn.disabled = !can;
-  const nextCorr = clamp(S.nextCorruption || 1, 1, 5);
-  if($('corrSlider')) $('corrSlider').value = nextCorr;
+  const nextCorr = (!S.soulMark ? Math.min(clamp(S.nextCorruption || 1, 1, 8), 5) : clamp(S.nextCorruption || 1, 1, 8));
+  if($('corrSlider')){
+    $('corrSlider').value = nextCorr;
+    $('corrSlider').max = S.soulMark ? 8 : 5;
+  }
+  if($('corrTicks')) $('corrTicks').classList.toggle('max5', !S.soulMark);
   if($('corrVal')) $('corrVal').textContent = nextCorr + ' 档';
   if($('corrEffects')){
-    let txt = '下世生效：升级所需斗气 +' + (nextCorr * 10) + '% · 剧情/野外敌人 ×' + (1 + nextCorr * 0.2).toFixed(2) +
-      ' · 轮回火晶 +' + (nextCorr * 6) + '%';
-    if(nextCorr === 3) txt += '<br>敌人狂暴：每回合攻击 +3%';
-    if(nextCorr === 4) txt += '<br>敌人狂暴 +3%/回合，开场无敌盾 1 层';
-    if(nextCorr === 5) txt += '<br>敌人狂暴 +4%/回合，开场无敌盾 2 层';
-    if(nextCorr >= 2) txt += '<br>' + (nextCorr >= 4 ? '魂殿追兵出现概率更高' : '会出现魂殿追兵');
+    let txt = '下世生效：' + corruptionEffectsSummary(nextCorr);
+    if(!S.soulMark) txt += '<br>取得「蚀魂印记」后才能选择 6 档以上。';
     $('corrEffects').innerHTML = txt + '<br>本周目当前：' + (S.corruption || 0) + ' 档。';
   }
   if($('saveInfo')){
@@ -6924,7 +7278,8 @@ function renderRebirth(){
 function merchantUnlocked(){ return storyDone('黑角域 · 拍卖会'); }
 function updateRebirthTab(){
   const b = document.querySelector('.tab-btn[data-tab="rebirth"]');
-  if(b) b.classList.toggle('locked', !S.rebirthUnlocked);
+  if(b) b.classList.toggle('locked', !rebirthAvailable());
+  applyTabFeatureLock('rebirth', !rebirthAvailable(), '解锁条件：火种首次转入暗红，或通关全部剧情');
 }
 function showRebirthUnlockModal(){
   showModal('火种 · 暗红', '<p>火种由橙红转入暗红，燃烧速度加快，挂机效率与战力开始衰减。</p><p>你第一次感应到轮回的门槛：火种熄灭并非终结，而是下一世的起点。</p><p class="hint">已解锁「轮回」功能。此后每世都会保留轮回入口。</p>', [{ t:'知道了' }]);
@@ -6948,6 +7303,7 @@ function goRebirthTab(){
 function updateMerchantTab(){
   const b = document.querySelector('.tab-btn[data-tab="merchant"]');
   if(b) b.classList.toggle('locked', !merchantUnlocked());
+  applyTabFeatureLock('merchant', !merchantUnlocked(), '解锁条件：通关剧情「黑角域 · 拍卖会」');
 }
 function renderMerchant(){
   updateMerchantTab();
@@ -6984,6 +7340,33 @@ function renderMerchant(){
     cards +
     '<div class="fc-row" style="margin-top:8px"><div class="fc-head"><span><b>材料交换</b></span><span class="tiny">筹备中</span></div><div class="hint">用商会门路互换药材与魔核，价格会随行情浮动。</div></div>';
 }
+function renderSoul(){
+  const box = $('soulBody');
+  if(!box) return;
+  const has = !!S.soulMark;
+  if($('soulState')) $('soulState').textContent = has ? '蚀魂印记' : '尚未觉醒';
+  if(!has){
+    box.innerHTML = '<div class="hint">灵魂力量的修炼与运用尚未开放。</div>' +
+      '<div class="hint" style="margin-top:6px">在 <b>5 档侵蚀</b> 下成为斗帝并击败魂天帝，可取得「蚀魂印记」。</div>';
+    return;
+  }
+  box.innerHTML =
+    '<div class="soul-mark"><div class="sigil">蚀</div><div><div class="nm">蚀魂印记</div><div class="tiny">已铭刻于灵魂深处</div></div></div>' +
+    '<div class="hint" style="margin-top:8px">这是你第一次在 5 档侵蚀下登临斗帝、击败魂天帝的证明。</div>' +
+    '<div class="hint">印记中沉睡着更深层侵蚀的力量，目前尚未解明。取得印记后，轮回时可选择 6 至 8 档侵蚀。</div>';
+}
+function maybeGrantSoulMark(){
+  if(S.soulMark) return false;
+  if((S.corruption || 0) !== 5) return false;
+  if(S.story < NODES.length || S.level < MAX_LEVEL) return false;
+  S.soulMark = true;
+  save();
+  log('灵魂深处浮现出一枚「蚀魂印记」。', 'log-good');
+  toast('获得蚀魂印记 · 已解锁 6–8 档侵蚀');
+  if(typeof activeTab !== 'undefined' && activeTab === 'rebirth') renderRebirth();
+  renderSoul();
+  return true;
+}
 const TAB_RENDER = {
   cultivate: function(force){
     renderStoryCard(force); renderLog(force); renderMilestones(force); renderCultivateDynamic();
@@ -7002,24 +7385,36 @@ const TAB_RENDER = {
   },
   rebirth: function(force){
     renderRebirth(); renderTree(force); renderRepeats(force);
-  }
+  },
+  puppet: function(){},
+  soul: function(){ renderSoul(); }
 };
+function applyTabFeatureLock(name, locked, text){
+  const sec = document.querySelector('.tab[data-tab="' + name + '"]');
+  if(!sec) return;
+  sec.classList.toggle('feature-locked', !!locked);
+  let ov = sec.querySelector('.tab-lock-overlay');
+  if(!locked){
+    if(ov) ov.remove();
+    return;
+  }
+  if(!ov){
+    ov = document.createElement('div');
+    ov.className = 'tab-lock-overlay';
+    sec.appendChild(ov);
+  }
+  ov.innerHTML = '<span>' + text + '</span>';
+}
 function switchTab(name, force){
   if(!TAB_RENDER[name]) return;
-  if(name === 'merchant' && !merchantUnlocked() && !force){
-    toast('通关第 19 关「黑角域 · 拍卖会」后解锁商会');
-    return;
-  }
-  if(name === 'rebirth' && !S.rebirthUnlocked && !force){
-    toast('火种首次转入暗红后解锁轮回');
-    return;
-  }
   activeTab = name;
   const tabs = document.querySelectorAll('.tab');
   for(let i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i].dataset.tab === name);
   const btns = document.querySelectorAll('.tab-btn');
   for(let i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.tab === name);
   TAB_RENDER[name](true);
+  applyTabFeatureLock('merchant', !merchantUnlocked(), '解锁条件：通关剧情「黑角域 · 拍卖会」');
+  applyTabFeatureLock('rebirth', !rebirthAvailable(), '解锁条件：火种首次转入暗红，或通关全部剧情');
   if(name === 'cultivate') renderCultivateDynamic();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -7166,17 +7561,23 @@ function bindUI(){
     ]);
   });
   if($('corrSlider')) $('corrSlider').addEventListener('input', function(){
-    S.nextCorruption = clamp(parseInt(this.value, 10) || 1, 1, 5);
+    let v = clamp(parseInt(this.value, 10) || 1, 1, 8);
+    if(v > 5 && !S.soulMark){
+      toast('需要先取得「蚀魂印记」，才能选择 6 档以上侵蚀');
+      v = 5;
+      this.value = 5;
+    }
+    S.nextCorruption = v;
     renderRebirth();
     save();
   });
   if($('rebirthBtn')) $('rebirthBtn').addEventListener('click', function(){
     if(!canRebirth()) return;
     const g = rebirthGain();
-    const nc = clamp(S.nextCorruption || 1, 1, 5);
+    const nc = clamp(S.nextCorruption || 1, 1, 8);
     showModal('入轮回', '<p>火种将熄，真灵归寂。此世所得 <b class="gold">' + fmt(g) + ' 枚轮回火晶</b> 将随你入下一世。</p>' +
       '<p class="hint">在这次轮回找到的异火本源，可永久继承其分焰。</p>' +
-      '<p class="hint">下世侵蚀度：<b class="gold">' + nc + ' 档</b> · 升级所需斗气 +' + (nc * 10) + '% · 敌人 ×' + (1 + nc * 0.2).toFixed(2) + ' · 轮回火晶 +' + (nc * 6) + '%。</p>' +
+      '<p class="hint">下世侵蚀度：<b class="gold">' + nc + ' 档</b><br>' + corruptionEffectsSummary(nc) + '</p>' +
       '<p class="hint">保留：火晶、商店加成、图鉴、好感。<br>重置：境界、剧情、焚诀等级、修炼进度、丹药材料、炼药等级与熟练度。</p>', [
       { t:'再守一会', cls:'ghost' },
       { t:'入轮回', cls:'', fn:function(){ const r = rebirth(); closeModal(); lastToastLevel = 2; renderAll(true); if(r.ok) toast('第 ' + S.cycle + ' 世 · 火晶 +' + r.gain); if(r.ok && r.showCorruptionIntro) showCorruptionIntro(); } }
@@ -7207,6 +7608,26 @@ function bindUI(){
     const t = e.target.closest('[data-act]');
     if(t && !t.disabled){
       const act = t.dataset.act;
+      if(act === 'skill-config'){
+        openSkillBanModal();
+        return;
+      }
+      if(act.indexOf('ban-skill-') === 0){
+        toggleBattleBan('skills', act.slice(10));
+        openSkillBanModal();
+        return;
+      }
+      if(act.indexOf('ban-tactic-') === 0){
+        toggleBattleBan('tactics', act.slice(11));
+        openSkillBanModal();
+        return;
+      }
+      if(act === 'ban-clear'){
+        S.battleBan = { skills:[], tactics:[] };
+        save();
+        openSkillBanModal();
+        return;
+      }
       if(act === 'challenge'){
         if(phase() === 'ash' && S.ashStrikeUsed){ showAshRebirth(); return; }
         if(phase() === 'ash'){ confirmAshStrike(); return; }
@@ -7248,15 +7669,6 @@ function bindUI(){
         const r = upgradeFireCult(act.slice(3));
         if(!r.ok) toast(r.msg);
         renderFireCult(); renderLotus(); renderHUD(); save();
-        return;
-      }
-      if(act === 'alch-core-toggle' || act === 'alch-herb-toggle'){
-        const core = act === 'alch-core-toggle';
-        const lv = alchUpgradeLevel(core ? 'core' : 'herb');
-        if(lv <= 0) return;
-        if(core) S.alchemyUpgrade.coreOn = !S.alchemyUpgrade.coreOn;
-        else S.alchemyUpgrade.herbOn = !S.alchemyUpgrade.herbOn;
-        renderAlchemyUpgrades(); renderRecipes(true); renderPillBag(true); save();
         return;
       }
       if(act && act.indexOf('alch-') === 0){
@@ -7435,7 +7847,7 @@ function showCorruptionIntro(){
 }
 function onAsh(){
   showModal('本源火种将熄', 
-    '<p>火种已入灰烬，挂机效率与战力大减。</p>' +
+    '<p>火种已入灰烬，挂机效率大减，战力下降 20%。</p>' +
     '<div class="quote">“本源火种将熄，可入轮回重燃火种。”</div>' +
     '<p class="hint">轮回保留火晶、商店加成与图鉴，重置境界、剧情与异火。</p>',
     [{ t:'继续坚守', cls:'ghost' }, { t:'入轮回', cls:'', fn:function(){ goRebirthTab(); } }]
@@ -7446,7 +7858,7 @@ function onEnding(){
     '<p>魂天帝的帝身被帝炎寸寸封镇，黑云散去，天光落回中州。</p>' +
     '<p>彩鳞抱着萧潇站在城头，薰儿与云韵并肩而立，小医仙在人群里冲你挥手，药老笑骂了一声“臭小子”。</p>' +
     '<div class="quote">“斗气大陆的故事到这里，可你的轮回还没有结束。”</div>' +
-    '<p class="hint">你已抵达此世终点。可入轮回，也可继续挂机收集尚未点亮的异火图鉴。</p>',
+    '<p class="hint">你已抵达此世终点。即便火种尚在橙红，现在也可以入轮回；也可继续挂机收集尚未点亮的异火图鉴。</p>',
     [{ t:'继续留在这一世', cls:'ghost' }]
   );
 }
