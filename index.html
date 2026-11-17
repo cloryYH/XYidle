@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b0908" />
 <title>萧炎放置 · 斗破苍穹同人放置</title>
+<link id="dynamicFavicon" rel="icon" type="image/svg+xml" />
 <style>
   :root{
     --paper:#f1ead9;
@@ -1388,13 +1389,8 @@
 
       <div class="card">
         <div class="card-title"><span>转生设置</span></div>
-        <div class="switch">
-          <div class="lb">携带异火本源<small>需先解锁「火种余烬」</small></div>
-          <div class="sw" id="swCarry"></div>
-        </div>
-        <div style="margin-top:7px">
-          <select id="carrySel"></select>
-        </div>
+        <div class="hint" id="carryHint" style="margin-bottom:5px"></div>
+        <select id="carrySel"></select>
         <div class="divider"></div>
         <div class="hint" id="saveInfo"></div>
         <div class="btn-row">
@@ -1450,7 +1446,7 @@
    数据层
    ========================================================= */
 const VERSION = 3;
-const GAME_VERSION = 'v0.3.1';
+const GAME_VERSION = 'v0.3.2';
 const AUTO_CRAFT_ENABLED = false;
 const SAVE_KEY = 'xiaoyan_idle_save_v3';
 const LEGACY_SAVE_KEYS = ['xiaoyan_idle_save_v2','xiaoyan_idle_save_v1','xiaoyan_idle_save_v0','xiaoyan_idle_save'];
@@ -2152,6 +2148,7 @@ const EVENT_DEX = [
   { id:'residual', name:'异火残焰', cond:'历练或采集时', desc:'岩缝中残留着一缕将熄的异火残焰。' },
   { id:'soulHunt', name:'魂殿追兵', cond:'侵蚀度较高且剧情推进后', desc:'魂殿追兵循着气息追来，避战还是迎战？' },
   { id:'pillCourier', name:'神秘守炉人', cond:'通关迦南学院后，低概率', desc:'一位守炉人塞来一枚香气诡异的丹药，服或不服只在一念。' },
+  { id:'ancient', name:'远古斗帝的传承', cond:'收服净莲妖火并达到斗圣后，低概率', desc:'一处远比当世宗门古老的洞府，残留着疑似斗帝的气息。' },
   { id:'voidFire', name:'空宇之火', cond:'神秘奇遇', realCond:'在单次轮回中停留6小时', desc:'来自空宇深处的火光。' }
 ];
 const ACHIEVEMENTS = [
@@ -2399,7 +2396,7 @@ function defaultState(){
     tree: {},
     repeat: { rqi:0, rpow:0, rherb:0, rwick:0, rcry:0 },
     carry: null,
-    carryOn: false,
+    carryOn: true,
     auto: { brk:true, pill:true, pillThreshold:80, story:false, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
     autoStoryDelay: 0,
     battleBan: { skills:[], tactics:[] },
@@ -2511,16 +2508,18 @@ const SOUL_MILESTONES = [
   { id:'lotus1', at:40000, type:'lotusChance', value:0.03, text:'火莲成功率 +3%' },
   { id:'alch1', at:80000, type:'alchChance', value:0.03, text:'炼丹成功率 +3%' },
   { id:'crit1', at:130000, type:'crit', value:0.03, text:'暴击率 +3%' },
-  { id:'ling', at:200000, type:'flameFind', value:0.20, realm:'灵境', text:'灵境 · 异火发现率 +20%' },
+  { id:'ling', at:160000, type:'flameFind', value:0.10, text:'异火发现率 +10%' },
   { id:'batch', at:200000, type:'batch', value:1, realm:'灵境', text:'灵境 · 批量炼丹', tip:'解锁批量炼丹：丹方旁可「炼制×5」，每隔 2 秒结算一次，材料不足时自动停止。' },
   { id:'dmg1', at:290000, type:'lotusDamage', value:0.10, text:'火莲与黄泉天怒威力 +10%' },
   { id:'lotus2', at:400000, type:'lotusChance', value:0.05, text:'火莲成功率 +5%（覆盖）' },
   { id:'alch2', at:510000, type:'alchChance', value:0.05, text:'炼丹成功率 +5%（覆盖）' },
   { id:'tian', at:600000, type:'guard', value:1, realm:'天境', text:'天境 · 魂之护佑', tip:'回合战斗中首次受到致命伤时，恢复 5% 生命；冷却 15 分钟，不受时空结晶加速。' },
+  { id:'flamefind2', at:660000, type:'flameFind', value:0.30, text:'异火发现率 +30%（覆盖）' },
   { id:'dmg2', at:750000, type:'lotusDamage', value:0.20, text:'火莲与黄泉天怒威力 +20%（覆盖）' },
   { id:'corr', at:910000, type:'corrReduce', value:0.6, text:'侵蚀度对升级斗气的影响降低，额外所需斗气 ×0.6' },
   { id:'crit2', at:1090000, type:'crit', value:0.05, text:'暴击率 +5%（覆盖）' },
   { id:'tianmax', at:1200000, type:'echo', value:1, realm:'天境大圆满', text:'天境大圆满 · 灵魂回响', tip:'每周目限一次：重新触发一个此前选择了默认选项的限时奇遇。' },
+  { id:'ashsoul', at:1300000, type:'ashSoul', value:1, text:'灰烬阶段灵魂获取仅 -20%', tip:'灰烬阶段灵魂力量获取速度不再按 -80% 计算，改为 -20%。' },
   { id:'lotusward', at:1500000, type:'lotusWard', value:0.5, text:'佛怒火莲 · 反噬减半', tip:'佛怒火莲失控时，战斗中损失的生命与战斗后损失的火种均减半。' },
   { id:'di_intimidate', at:2000000, type:'intimidate', value:1, realm:'帝境', text:'帝境 · 灵魂威压', tip:'帝境灵魂威压：可直接秒杀魂殿追兵，并算作战斗胜利。' },
   { id:'di_intent', at:2000000, type:'intent', value:1, realm:'帝境', text:'帝境 · 魂之智慧', tip:'战斗中三分之一概率预读敌人的下回合意图。' }
@@ -2551,7 +2550,7 @@ function soulSpeed(){
   v *= (1 + 0.03 * evilCrystalCount());
   const ph = phase();
   if(ph === 'red') v *= 0.8;
-  else if(ph === 'ash') v *= 0.2;
+  else if(ph === 'ash') v *= soulHasType('ashSoul') ? 0.8 : 0.2;
   return v;
 }
 function soulGainRate(){ return soulSpeed() * (S.timeBuff > 0 ? 3 : 1); }
@@ -2582,7 +2581,7 @@ function soulRateDetailHTML(){
   if(ec > 0) rows.push('时邪晶体 · ' + ec + ' 层 <b>×' + (1 + 0.03 * ec).toFixed(2) + '</b>');
   const ph = phase();
   if(ph === 'red') rows.push('暗红阶段 <b>×0.8</b>');
-  else if(ph === 'ash') rows.push('灰烬阶段 <b>×0.2</b>');
+  else if(ph === 'ash') rows.push('灰烬阶段 <b>×' + (soulHasType('ashSoul') ? '0.8' : '0.2') + '</b>');
   if(S.timeBuff > 0) rows.push('时空结晶 <b>×3</b>');
   rows.push('<span class="srt-total">最终速度 <b>+' + soulGainRate().toFixed(1) + '/秒</b></span>');
   return '<div class="srt-title">灵魂速度明细</div>' + rows.map(function(t){ return '<div class="srt-row">' + t + '</div>'; }).join('');
@@ -2929,7 +2928,7 @@ function qiRate(){
   const cult = cultBase(S.level) * bonuses().qi;
   if(S.mode === 'cultivate') return cult * 0.92;
   if(S.mode === 'gather') return cult * 0.276;
-  if(S.mode === 'seclusion') return cult * 1.656;
+  if(S.mode === 'seclusion') return cult * 1.84;
   const st = exploreStats();
   return cult * 0.34 * st.w;
 }
@@ -3191,7 +3190,7 @@ function tryBreak(auto){
 }
 
 /* ---------- 丹道 ---------- */
-const ALCH_T = [0,0,15,40,80,140,220,320,440,580];
+const ALCH_T = [0,0,15,40,80,140,220,450,620,800];
 function alchLevelFor(exp){
   let l = 1;
   for(let i = 2; i <= 9; i++) if(exp >= ALCH_T[i]) l = i;
@@ -5093,6 +5092,18 @@ function flamePoolCurrentSplit(){
       flameKindOf(f.id) === 'split';
   });
 }
+function grantRandomWildFlame(){
+  const pools = [flamePoolUnseen(), flamePoolLost(), flamePoolCurrentSplit()];
+  for(let i = 0; i < pools.length; i++){
+    if(!pools[i].length) continue;
+    const f = pickOne(pools[i]);
+    markEventSeen('wildFlame');
+    addFlame(f.id);
+    S._flamePity = 0;
+    return f;
+  }
+  return null;
+}
 function realmFlameChanceMult(){
   const tier = LEVELS[S.level].tier;
   let steps = 0;
@@ -5135,30 +5146,7 @@ function doEvent(){
     const realmFlame = realmFlameChanceMult();
     const flameChance = 0.0008 * (S.mode === 'explore' ? 1.25 : 1) * (hasTree('flame1') ? 1.6 : 1) * realmFlame * (S.flameIntel > 0 ? 1.5 : 1) * (1 + 0.10 * squadFlameCount());
     if(S._flamePity >= 1200 || rnd() < flameChance){
-      const miss = flamePoolUnseen();
-      if(miss.length){
-        const f = pickOne(miss);
-        markEventSeen('wildFlame');
-        addFlame(f.id);
-        S._flamePity = 0;
-        return;
-      }
-      const lost = flamePoolLost();
-      if(lost.length){
-        const f = pickOne(lost);
-        markEventSeen('wildFlame');
-        addFlame(f.id);
-        S._flamePity = 0;
-        return;
-      }
-      const old = flamePoolCurrentSplit();
-      if(old.length){
-        const f = pickOne(old);
-        markEventSeen('wildFlame');
-        addFlame(f.id);
-        S._flamePity = 0;
-        return;
-      }
+      if(grantRandomWildFlame()) return;
     }
   }
   const voidReady = S.mode !== 'seclusion' && !(S.seenUnlocks && S.seenUnlocks.voidFire) && (S.stats.runTime || 0) >= 6 * 3600;
@@ -5307,6 +5295,7 @@ function limitedEventTitle(g){
   if(g.type === 'soulHunt') return '魂殿追兵';
   if(g.type === 'voidFire') return '空宇之火';
   if(g.type === 'pillCourier') return '神秘守炉人';
+  if(g.type === 'ancient') return '远古斗帝的传承';
   if(g.type === 'danlei') return '丹雷降世';
   return '药株与魔兽';
 }
@@ -5409,6 +5398,21 @@ function danleiBody(g){
         '<span class="ba-key">2 ·</span><b>正面抵挡丹雷</b><span class="ba-desc">丹雷精灵战力 ' + fmt(g.enemyPower) + ' · 我方战力 ' + fmt(power()) + ' · 胜率 ' + pct(g.w) + '</span></button>' +
     '</div>';
 }
+function ancientBody(g){
+  const dis = g.frozen ? ' disabled' : '';
+  const freezeLine = g.frozen ? '<div class="herb-freeze">准备中，2 秒后开放选择</div>' : '';
+  return '<p>你在中州边缘发现一处被风沙掩埋的古老洞府。石门上的纹路比任何宗门典籍都更久远，逸散的气息让斗圣都感到压迫。</p>' +
+    '<p>“洞府主人的实力，恐怕还在斗圣之上……”你望向深处那道模糊的帝影，“难道是某位斗帝的遗留？”</p>' +
+    '<p>石壁上的远古文字仍在流转，洞府深处另有一道紧闭的暗门。</p>' +
+    freezeLine +
+    '<div class="herb-timer"><div class="herb-timer-bar"><i id="herbTimerFill" style="width:100%"></i></div><span id="herbTimerText">20.0 秒</span></div>' +
+    '<div class="battle-actions" style="margin-top:8px">' +
+      '<button class="battle-action herb-action" type="button" data-herb="ancientStudy"' + dis + '>' +
+        '<span class="ba-key">1 ·</span><b>参悟远古文字</b><span class="ba-desc">斗气 +' + fmt(g.qiGain) + ' · 默认选项</span></button>' +
+      '<button class="battle-action herb-action" type="button" data-herb="ancientSearch"' + dis + '>' +
+        '<span class="ba-key">2 ·</span><b>寻找密室</b><span class="ba-desc">获得一种野生异火；若无野生异火可收服，则恢复火种 120 秒</span></button>' +
+    '</div>';
+}
 function herbGuardBody(){
   const g = HERB_GUARD;
   if(!g) return '';
@@ -5438,6 +5442,7 @@ function herbGuardBody(){
       '</div>';
   }
   if(g.type === 'auction') return auctionBody(g);
+  if(g.type === 'ancient') return ancientBody(g);
   if(g.type === 'traveler') return travelerBody(g);
   if(g.type === 'residual') return residualBody(g);
   if(g.type === 'soulHunt') return soulHuntBody(g);
@@ -5494,7 +5499,7 @@ function updateHerbGuardTimer(){
   if($('herbTimerFill')) $('herbTimerFill').style.width = (left / 20 * 100).toFixed(1) + '%';
   if($('herbTimerText')) $('herbTimerText').textContent = left.toFixed(1) + ' 秒';
   if(left <= 0){
-    const timeoutMap = { garden:'outer', auction:'auctionGiveup', traveler:'travelerLeave', residual:'residualDevour', pillCourier:'destroyPill', danlei:'danleiProtect' };
+    const timeoutMap = { garden:'outer', auction:'auctionGiveup', traveler:'travelerLeave', residual:'residualDevour', pillCourier:'destroyPill', ancient:'ancientStudy', danlei:'danleiProtect' };
     const timeoutChoice = HERB_GUARD.type === 'soulHunt'
       ? (soulIntimidateUnlocked() ? 'soulHuntCrush' : 'soulHuntAvoid')
       : (timeoutMap[HERB_GUARD.type] || 'leave');
@@ -5503,6 +5508,9 @@ function updateHerbGuardTimer(){
 }
 function limitedModeOkNow(){
   return S.mode !== 'seclusion' && (S.mode === 'gather' || storyDone('迦南学院') || merchantUnlocked() || (S.mode === 'explore' && (!S.traveler.done || !S.flameResidualUsed)) || soulHuntAvailable());
+}
+function ancientEventAvailable(){
+  return LEVELS[S.level].tier >= 10 && (storyDone('妖火空间') || (S.seenFlames || []).indexOf('jinglian') >= 0);
 }
 function limitedEventPool(){
   const tier = (LEVELS[S.level] && LEVELS[S.level].tier) || 0;
@@ -5534,6 +5542,7 @@ function limitedEventPool(){
       }
     }
   }
+  if(ancientEventAvailable()) pool.push(['ancient',4]);
   if(storyDone('迦南学院')) pool.push(['pillCourier',5]);
   return pool;
 }
@@ -5549,7 +5558,7 @@ function startLimitedEvent(typeOverride){
     }
   }
   const n = nextNode();
-  if(forced && ['herb','garden','auction','traveler','residual','soulHunt','voidFire','pillCourier'].indexOf(forced) < 0) return false;
+  if(forced && ['herb','garden','auction','traveler','residual','soulHunt','voidFire','pillCourier','ancient'].indexOf(forced) < 0) return false;
   let type = forced || (forceVoid ? 'voidFire' : '');
   if(!type){
     const pool = limitedEventPool();
@@ -5611,6 +5620,8 @@ function startLimitedEvent(typeOverride){
     g.helpCost = herbRate * 30;
   } else if(type === 'residual'){
     g.absorbChance = clamp(0.35 + 0.05 * flameCountWeight(), 0, 1);
+  } else if(type === 'ancient'){
+    g.qiGain = reqNeed(S.level) * 0.5;
   } else if(type === 'soulHunt'){
     const prev = NODES[S.story - 1];
     if(!prev) return false;
@@ -5789,6 +5800,7 @@ function isDefaultLimitedChoice(g, choice){
   if(g.type === 'residual') return choice === 'residualDevour';
   if(g.type === 'soulHunt') return choice === (soulIntimidateUnlocked() ? 'soulHuntCrush' : 'soulHuntAvoid');
   if(g.type === 'pillCourier') return choice === 'destroyPill';
+  if(g.type === 'ancient') return choice === 'ancientStudy';
   return false;
 }
 function recordMissedEvent(g, choice){
@@ -5829,6 +5841,24 @@ function herbGuardChoose(choice, timedOut){
     renderAll(true);
     log('你记下了空宇之火的火光，火晶商店中出现了对应的升级。', 'log-good');
     showModal('空宇之火', '<p>火光没入识海，空宇之火的名字被你牢牢记下。</p><p class="hint">现在可以在火晶商店找到「空宇之火」。</p>', [{ t:'知道了' }]);
+    return;
+  }
+  if(g.type === 'ancient'){
+    if(choice === 'ancientSearch'){
+      const f = grantRandomWildFlame();
+      if(f){
+        log('远古斗帝的传承：你推开密室，收服异火「' + f.name + '」。', 'log-good');
+        endHerbGuard('你在密室中收服了异火「' + f.name + '」');
+      } else {
+        addWick(120);
+        log('远古斗帝的传承：密室里没有可收服的异火，你只带回一缕火种（+120 秒）。', 'log-sys');
+        endHerbGuard('密室中没有异火，你恢复了 120 秒火种');
+      }
+    } else {
+      S.qi += g.qiGain;
+      log('远古斗帝的传承：你参悟远古文字，斗气 +' + fmt(g.qiGain) + '。', 'log-good');
+      endHerbGuard('参悟远古文字，斗气有所增长');
+    }
     return;
   }
   if(g.type === 'auction'){
@@ -6164,7 +6194,7 @@ function rebirth(){
   S.rebirthUnlocked = true;
   S.crystals += gain;
   S.stats.rebirths++;
-  const carry = (S.carryOn && hasTree('start1') && S.carry && S.seenFlames.indexOf(S.carry) >= 0) ? S.carry : null;
+  const carry = (hasTree('start1') && S.carry && S.seenFlames.indexOf(S.carry) >= 0) ? S.carry : null;
   S.cycle++;
   S.corruption = nextCorr;
   S.nextCorruption = nextCorr;
@@ -6398,6 +6428,7 @@ function confirmSeclusion(){
   if(phase() === 'ash'){ toast('火种已成灰烬，无法闭关'); return { ok:false }; }
   showModal('确认闭关',
     '<p>闭关期间无法主动退出。</p>' +
+    '<p class="hint">闭关期间仍可前往炼丹页正常炼制丹药，建议提前准备好突破所需丹药。</p>' +
     '<p>斗气足够后会自动尝试突破；小境界突破不会打断闭关，并重置连续失败次数。</p>' +
     '<p>连续失败 3 次，或突破大境界后，才会自动退出并回到练功。</p>' +
     '<p class="red">每次突破失败有 20% 概率走火入魔：额外损失当前境界所需斗气的 10%，并损失等同两次战斗失败的火种时间。</p>',
@@ -6450,7 +6481,7 @@ function showModeHelp(){
       '<tr><td>练功</td><td>100%</td><td>0%</td><td>0%</td><td>1.00×</td><td>×1.00</td><td>' + iv('cultivate') + '</td></tr>' +
       '<tr><td>历练</td><td>60%</td><td>30%</td><td>100%</td><td>1.50×</td><td>×1.25</td><td>' + iv('explore') + '</td></tr>' +
       '<tr><td>采集</td><td>30%</td><td>100%</td><td>10%</td><td>1.25×</td><td>×1.00</td><td>' + iv('gather') + '</td></tr>' +
-      '<tr><td>闭关</td><td>180%</td><td>0%</td><td>0%</td><td>无</td><td>无</td><td>无</td></tr>' +
+      '<tr><td>闭关</td><td>200%</td><td>0%</td><td>0%</td><td>无</td><td>无</td><td>无</td></tr>' +
     '</tbody></table>' +
     '<p class="hint">奇遇基础遇火率 0.1%，历练遇火加成 ×1.25；平均间隔已计入机缘不断与当前时空结晶加速。</p>' +
     '<p class="hint">闭关期间无法主动退出；连续失败 3 次或突破大境界后自动出关。每次失败有 20% 走火入魔。</p>';
@@ -7172,7 +7203,7 @@ function tick(dt){
     S.herbs += gs.herb * dt * gainM * rm;
     S.cores += gs.core * dt * gainM * rm;
   } else if(S.mode === 'seclusion'){
-    S.qi += cult * 1.656 * dt * gainM * rm * fireCultSeclusionMult();
+    S.qi += cult * 1.84 * dt * gainM * rm * fireCultSeclusionMult();
   } else {
     const st = exploreStats();
     S.qi += cult * 0.34 * st.w * dt * gainM * rm;
@@ -7476,6 +7507,37 @@ function renderTianhuo(){
     '<div class="btn-row" style="margin-top:6px;flex-wrap:wrap">' + mainBtn + '</div>' +
     '<div class="hint" style="margin-top:6px">虚弱 5 分钟：战力与斗气获取减半。虚弱结束后可再次施展。</div>';
 }
+let faviconKey = '';
+const FAVICON_COLORS = {
+  default:  { outer:'#d9642a', inner:'#f0a83a' },
+  qinglian: { outer:'#2fc7b0', inner:'#b6f7ec' },
+  yunluo:   { outer:'#8fd8e8', inner:'#e8ffff' },
+  jinglian: { outer:'#ffd9ec', inner:'#fff5fb' },
+  diyan:    { outer:'#ffd166', inner:'#fff3bf' }
+};
+function updateFavicon(){
+  if(!S || !Array.isArray(S.flames)) return;
+  let id = 'default';
+  const order = ['diyan','jinglian','yunluo','qinglian'];
+  for(let i = 0; i < order.length; i++){
+    const fid = order[i];
+    if(S.flames.indexOf(fid) < 0) continue;
+    if(fid !== 'diyan' && flameKindOf(fid) !== 'origin') continue;
+    id = fid;
+    break;
+  }
+  if(faviconKey === id) return;
+  faviconKey = id;
+  const link = document.getElementById('dynamicFavicon');
+  if(!link) return;
+  const c = FAVICON_COLORS[id] || FAVICON_COLORS.default;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+    '<rect width="64" height="64" rx="14" fill="#1d251f"/>' +
+    '<path d="M32 7c3 9-8 12-3 21 2-5 7-7 9-12 7 9 9 16 5 24-3 6-9 10-16 10S15 47 14 40c-1-8 4-13 9-19 1 4 2 7 5 9 1-8 1-15 4-22z" fill="' + c.outer + '"/>' +
+    '<path d="M32 24c2 4-4 7-1 12 1-3 4-4 5-6 3 5 4 9 2 13-2 3-5 5-8 5s-7-3-7-7c0-4 3-6 6-9 0 2 1 4 3 5 0-4 0-8 0-13z" fill="' + c.inner + '"/>' +
+    '</svg>';
+  link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
 function renderHUD(){
   const li = LEVELS[S.level];
   const ph = phase();
@@ -7597,6 +7659,7 @@ function renderHUD(){
     lastToastLevel = li.idx;
     toast('晋入 ' + li.name);
   }
+  updateFavicon();
 }
 
 /* ---------- 修炼页 ---------- */
@@ -7796,7 +7859,7 @@ function renderCultivateDynamic(){
   const est = exploreStats();
   const exploreQi = baseQi * 0.34 * est.w;
   const gatherQi = baseQi * 0.276;
-  const seclusionQi = baseQi * 1.656;
+  const seclusionQi = baseQi * 1.84;
   const gs = gatherStats();
   if($('modeHint')){
     if(S.mode === 'cultivate'){
@@ -8429,6 +8492,12 @@ function showSettings(){
       '<div class="settings-h">更新日志</div>' +
       '<div class="changelog">' +
         '<details class="cl-entry" open>' +
+          '<summary class="cl-head"><span class="cl-ver">v0.3.2</span><span class="cl-date">2026-11-17</span></summary>' +
+          '<ul class="cl-list">' +
+            '<li>调整了部分灵魂力量里程碑的内容。</li>' +
+          '</ul>' +
+        '</details>' +
+        '<details class="cl-entry">' +
           '<summary class="cl-head"><span class="cl-ver">v0.3.1</span><span class="cl-date">2026-11-15</span></summary>' +
           '<ul class="cl-list">' +
             '<li><b>佛怒火莲</b>：基础成功率 30%，8 种异火后递减，取消 85% 上限；失败代价降至 32% 生命、4% 火种。</li>' +
@@ -9125,14 +9194,19 @@ function renderRebirth(){
   // 携带异火
   if(changed('carrySel', S.seenFlames.join(',') + '|' + (hasTree('start1') ? 1 : 0) + '|' + S.carry)){
     const sel = $('carrySel');
+    if($('carryHint')) $('carryHint').textContent = hasTree('start1') ? '选择轮回时携带的异火本源' : '需先解锁「火种余烬」';
     if(sel){
-      const opts = ['<option value="">不携带</option>'].concat(S.seenFlames.map(function(id){
-        return '<option value="' + id + '" ' + (S.carry === id ? 'selected' : '') + '>' + FLAME_BY_ID[id].name + '</option>';
+      const carryIds = S.seenFlames.slice().sort(function(a, b){
+        return (FLAME_BY_ID[a].rank || 99) - (FLAME_BY_ID[b].rank || 99);
+      });
+      const opts = ['<option value="">不携带</option>'].concat(carryIds.map(function(id){
+        const f = FLAME_BY_ID[id];
+        const suffix = (id === 'diyan' || id === 'xuwu') ? '' : (f.story === -2 ? '（奇遇）' : '（剧情）');
+        return '<option value="' + id + '" ' + (S.carry === id ? 'selected' : '') + '>' + f.name + suffix + '</option>';
       }));
       sel.innerHTML = opts.join('');
       sel.disabled = !hasTree('start1');
     }
-    syncSwitch('swCarry', S.carryOn && hasTree('start1'));
   }
 }
 
@@ -9935,7 +10009,6 @@ function bindUI(){
     swCraft: function(){ S.auto.craft = !S.auto.craft; return S.auto.craft; },
     swPriority: function(){ S.auto.priorityStory = !S.auto.priorityStory; return S.auto.priorityStory; },
     swSkipUnlock: function(){ S.settings.skipUnlockPopups = !S.settings.skipUnlockPopups; return S.settings.skipUnlockPopups; },
-    swCarry: function(){ S.carryOn = !S.carryOn; return S.carryOn && hasTree('start1'); }
   };
   Object.keys(swMap).forEach(function(id){
     const el = $(id);
@@ -9990,7 +10063,9 @@ function bindUI(){
     });
   }
   if($('carrySel')) $('carrySel').addEventListener('change', function(e){
-    S.carry = e.target.value || null; save();
+    S.carry = e.target.value || null;
+    save();
+    renderRebirth();
   });
   if($('saveBtn')) $('saveBtn').addEventListener('click', function(){
     if(save()) toast('已存档'); else toast('存档失败：浏览器禁用了本地存储');
@@ -10016,7 +10091,10 @@ function bindUI(){
     if(!canRebirth()) return;
     const g = rebirthGain();
     const nc = clamp(S.nextCorruption || 1, 1, 9);
+    const carryId = (hasTree('start1') && S.carry && S.seenFlames.indexOf(S.carry) >= 0) ? S.carry : null;
+    const carryText = carryId && FLAME_BY_ID[carryId] ? FLAME_BY_ID[carryId].name + '本源' : '不携带';
     showModal('入轮回', '<p>火种将熄，真灵归寂。此世所得 <b class="gold">' + fmt(g) + ' 枚轮回火晶</b> 将随你入下一世。</p>' +
+      '<p>本次携带：<b>' + carryText + '</b></p>' +
       '<p class="hint">在这次轮回找到的异火本源，可永久继承其分焰。</p>' +
       '<p class="hint">下世侵蚀度：<b class="gold">' + nc + ' 档</b><br>' + corruptionEffectsSummary(nc) + '</p>' +
       '<p class="hint">保留：火晶、商店加成、图鉴、好感。<br>重置：境界、剧情、焚诀等级、修炼进度、丹药材料、炼药等级与熟练度。</p>', [
