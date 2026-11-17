@@ -82,6 +82,12 @@
     mask-image:linear-gradient(180deg,#000,transparent);
   }
   .app{max-width:880px;margin:0 auto;padding:0 12px 40px;}
+  body.layout-wide .app{max-width:1200px}
+  body.layout-ultra .app{max-width:1600px}
+  body.layout-auto .app{max-width:min(1800px, calc(100vw - 64px))}
+  @media(max-width:1099px){
+    body.layout-auto .app{max-width:880px}
+  }
 
   /* ===== HUD ===== */
   .hud{
@@ -427,7 +433,7 @@
     color:#7e425c;font-family:"STKaiti","KaiTi","Noto Serif SC",serif;font-style:italic;
     text-shadow:0 0 7px rgba(126,66,92,.35);
   }
-  .story-name.corrupt{letter-spacing:2px}
+  .story-name.corrupt{letter-spacing:2px;font-weight:700}
   .badge.corrupt{color:#7e425c;border-color:rgba(126,66,92,.42);background:rgba(126,66,92,.08)}
   .story-desc{font-size:12.5px;color:var(--ink2);line-height:1.8;margin:7px 0 10px}
   .story-meta{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:8px}
@@ -983,6 +989,25 @@
     .app{padding:0 18px 50px}
     .tab-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
     .tab-cols .card{margin-bottom:12px}
+  }
+  @media (min-width:1100px){
+    body.layout-wide .tab.on:not([data-tab="cultivate"]),
+    body.layout-auto .tab.on:not([data-tab="cultivate"]){
+      column-count:2;column-gap:12px;
+    }
+    body.layout-wide .tab.on:not([data-tab="cultivate"]) .card,
+    body.layout-auto .tab.on:not([data-tab="cultivate"]) .card{
+      break-inside:avoid;margin-bottom:12px;
+    }
+  }
+  @media (min-width:1500px){
+    body.layout-ultra .tab.on:not([data-tab="cultivate"]),
+    body.layout-auto .tab.on:not([data-tab="cultivate"]){
+      column-count:3;
+    }
+    body.layout-ultra .tab.on:not([data-tab="cultivate"]) .card{
+      break-inside:avoid;margin-bottom:12px;
+    }
   }
 
 </style>
@@ -2400,7 +2425,7 @@ function defaultState(){
     auto: { brk:true, pill:true, pillThreshold:80, story:false, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
     autoStoryDelay: 0,
     battleBan: { skills:[], tactics:[] },
-    settings: { skipUnlockPopups:true, ashDim:true, battleShake:true, hideOwnedUpgrades:false },
+    settings: { skipUnlockPopups:true, ashDim:true, battleShake:true, hideOwnedUpgrades:false, layout:'auto' },
     tutorialDone: false,
     achievements: {},
     achievementProgress: {},
@@ -6947,6 +6972,7 @@ function loadGame(){
     if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(o.settings.hideOwnedUpgrades === undefined) o.settings.hideOwnedUpgrades = false;
     o.settings.hideOwnedUpgrades = !!o.settings.hideOwnedUpgrades;
+    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'auto';
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
@@ -7538,7 +7564,17 @@ function updateFavicon(){
     '</svg>';
   link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
+function applyLayout(){
+  const layouts = ['standard','wide','ultra','auto'];
+  let layout = S && S.settings && S.settings.layout;
+  if(layouts.indexOf(layout) < 0) layout = 'auto';
+  document.body.classList.remove('layout-standard','layout-wide','layout-ultra','layout-auto');
+  document.body.classList.add('layout-' + layout);
+  const sel = document.getElementById('layoutSel');
+  if(sel) sel.value = layout;
+}
 function renderHUD(){
+  applyLayout();
   const li = LEVELS[S.level];
   const ph = phase();
   if($('realmLabel')) $('realmLabel').textContent = li.name;
@@ -8460,6 +8496,13 @@ function showSettings(){
     '</div>' +
     '<div class="settings-block">' +
       '<div class="settings-h">界面</div>' +
+      '<div class="row between" style="margin:8px 0;gap:10px"><span>界面宽度</span>' +
+        '<select id="layoutSel" style="width:auto;min-width:150px;padding:4px 7px;border:1px solid var(--line);border-radius:5px;background:rgba(255,252,243,.8);font-family:inherit;font-size:11.5px;color:var(--ink)">' +
+          '<option value="auto">自适应（大屏多列）</option>' +
+          '<option value="standard">标准（880）</option>' +
+          '<option value="wide">宽屏（1200）</option>' +
+          '<option value="ultra">超宽（1600）</option>' +
+        '</select></div>' +
       '<div class="switch"><div class="lb">跳过已看过的功能解锁弹窗<small>仅跳过曾经看过的解锁介绍</small></div><div class="sw" id="swSkipUnlock"></div></div>' +
       '<div class="switch"><div class="lb">灰烬阶段背景变暗<small>关闭后灰烬阶段保持正常亮度</small></div><div class="sw" id="swAshDim"></div></div>' +
       '<div class="switch"><div class="lb">战斗大伤害抖动<small>产生超过最大生命三分之一的伤害时抖动战斗窗口</small></div><div class="sw" id="swBattleShake"></div></div>' +
@@ -8499,6 +8542,7 @@ function showSettings(){
             '<li>新奇遇：新增稀有「远古斗帝的传承」，收服净莲妖火并达到斗圣后可能出现。</li>' +
             '<li>游戏图标：标签页图标会随青莲地心火、陨落心炎、净莲妖火和帝炎变色。</li>' +
             '<li>异火继承：携带帝炎轮回可保留帝炎本源与全部分焰，虚无吞炎可作为分焰继承；携带下拉按图鉴排序并标注来源。</li>' +
+            '<li>界面布局：新增自适应宽度设置，支持标准、宽屏、超宽和大屏多列布局。</li>' +
           '</ul>' +
         '</details>' +
         '<details class="cl-entry">' +
@@ -8789,6 +8833,16 @@ function showSettings(){
       '</div>' +
     '</div>';
   showModal('设置 · ' + GAME_VERSION, body, [{ t:'关闭' }], true);
+  applyLayout();
+  if($('layoutSel')){
+    $('layoutSel').addEventListener('change', function(e){
+      const layout = e.target.value;
+      S.settings.layout = ['standard','wide','ultra','auto'].indexOf(layout) >= 0 ? layout : 'auto';
+      save();
+      applyLayout();
+      toast('界面宽度已切换');
+    });
+  }
   syncSwitch('swSkipUnlock', S.settings.skipUnlockPopups);
   if($('swSkipUnlock')){
     $('swSkipUnlock').addEventListener('click', function(){
@@ -8921,6 +8975,7 @@ async function handleSetting(act){
     if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(o.settings.hideOwnedUpgrades === undefined) o.settings.hideOwnedUpgrades = false;
     o.settings.hideOwnedUpgrades = !!o.settings.hideOwnedUpgrades;
+    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'auto';
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
