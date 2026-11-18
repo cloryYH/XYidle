@@ -1295,6 +1295,7 @@
 
       <div class="card">
         <div class="card-title"><span>丹方</span><span class="sub">药材按药方折算</span></div>
+        <div class="switch"><div class="lb">隐藏当前周目已炼制的剧情丹<small>只影响显示，轮回后重置</small></div><div class="sw" id="swHideStoryPills"></div></div>
         <div id="recipeList"></div>
       </div>
 
@@ -2425,7 +2426,7 @@ function defaultState(){
     auto: { brk:true, pill:true, pillThreshold:80, story:false, storyThreshold:60, craft:false, craftId:'zhuji', priorityStory:true },
     autoStoryDelay: 0,
     battleBan: { skills:[], tactics:[] },
-    settings: { skipUnlockPopups:true, ashDim:true, battleShake:true, hideOwnedUpgrades:false, layout:'auto' },
+    settings: { skipUnlockPopups:true, ashDim:true, battleShake:true, hideOwnedUpgrades:false, hideCraftedStoryPills:false, layout:'standard' },
     tutorialDone: false,
     achievements: {},
     achievementProgress: {},
@@ -3990,7 +3991,7 @@ function resolveStoryWin(n){
     showModal('天火三玄变 · 第一重',
       '<p>炼药师大会散场后，你在公会交易场的一堆旧物里翻到一卷残破功法。封皮只剩半行字：<b>天火三玄变</b>。</p>' +
       '<p>残卷只记着第一变的运转法门。你总觉得，这门功法似乎还缺了些什么。</p>' +
-      '<p class="hint">已习得「天火三玄变」第一重，可在修炼页施展第一变。</p>',
+      '<p class="hint">已习得「天火三玄变」第一重，可在焚诀界面施展第一变。</p>',
       [{ t:'收下残卷' }]);
   }
   if(n.title === '焚炎谷'){
@@ -6252,6 +6253,7 @@ function rebirth(){
   S.pills = {};
   S.lastPillId = null;
   S.storyCrafted = {};
+  if(S.settings) S.settings.hideCraftedStoryPills = false;
   S.craftFailStreak = {};
   S.milestones = [];
   S.ashStrikeUsed = false;
@@ -6972,7 +6974,9 @@ function loadGame(){
     if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(o.settings.hideOwnedUpgrades === undefined) o.settings.hideOwnedUpgrades = false;
     o.settings.hideOwnedUpgrades = !!o.settings.hideOwnedUpgrades;
-    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'auto';
+    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'standard';
+    if(o.settings.hideCraftedStoryPills === undefined) o.settings.hideCraftedStoryPills = false;
+    o.settings.hideCraftedStoryPills = !!o.settings.hideCraftedStoryPills;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
@@ -7567,7 +7571,7 @@ function updateFavicon(){
 function applyLayout(){
   const layouts = ['standard','wide','ultra','auto'];
   let layout = S && S.settings && S.settings.layout;
-  if(layouts.indexOf(layout) < 0) layout = 'auto';
+  if(layouts.indexOf(layout) < 0) layout = 'standard';
   document.body.classList.remove('layout-standard','layout-wide','layout-ultra','layout-auto');
   document.body.classList.add('layout-' + layout);
   const sel = document.getElementById('layoutSel');
@@ -8125,11 +8129,19 @@ function pillEffectText(p){
   return '剧情道具：' + (node ? '「' + node.title + '」所需' : '推进剧情');
 }
 function renderRecipes(force){
-  const key = S.alchemyLevel + '|' + flameCountWeight() + '|' + (hasTree('alch1') ? 1 : 0) + '|' + S.level + '|' + S.mode + '|' + S.region + '|' + Math.floor(Math.log10(Math.max(1, herbPerSec())) * 10) + '|' + soulRealmIndex() + '|' + (S.batchCraft ? S.batchCraft.id + ':' + S.batchCraft.left : '');
+  const key = S.alchemyLevel + '|' + flameCountWeight() + '|' + (hasTree('alch1') ? 1 : 0) + '|' + S.level + '|' + S.mode + '|' + S.region + '|' + Math.floor(Math.log10(Math.max(1, herbPerSec())) * 10) + '|' + soulRealmIndex() + '|' + (S.batchCraft ? S.batchCraft.id + ':' + S.batchCraft.left : '') + '|' + (S.settings.hideCraftedStoryPills ? '1' : '0') + '|' + Object.keys(S.storyCrafted || {}).sort().join(',');
   if(!changed('recipes', key) && !force) return;
   const box = $('recipeList');
   if(!box) return;
-  const list = PILLS.slice().sort(function(a, b){ return a.tier - b.tier; });
+  syncSwitch('swHideStoryPills', !!S.settings.hideCraftedStoryPills);
+  let list = PILLS.slice().sort(function(a, b){ return a.tier - b.tier; });
+  if(S.settings.hideCraftedStoryPills){
+    list = list.filter(function(p){ return !(p.type === 'key' && S.storyCrafted && S.storyCrafted[p.id]); });
+  }
+  if(!list.length){
+    box.innerHTML = '<div class="hint">当前周目已炼制的剧情丹已隐藏。</div>';
+    return;
+  }
   box.innerHTML = list.map(function(p){
     const cost = pillCost(p);
     const ch = craftChance(p);
@@ -8975,7 +8987,9 @@ async function handleSetting(act){
     if(o.settings.battleShake === undefined) o.settings.battleShake = true;
     if(o.settings.hideOwnedUpgrades === undefined) o.settings.hideOwnedUpgrades = false;
     o.settings.hideOwnedUpgrades = !!o.settings.hideOwnedUpgrades;
-    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'auto';
+    if(['standard','wide','ultra','auto'].indexOf(o.settings.layout) < 0) o.settings.layout = 'standard';
+    if(o.settings.hideCraftedStoryPills === undefined) o.settings.hideCraftedStoryPills = false;
+    o.settings.hideCraftedStoryPills = !!o.settings.hideCraftedStoryPills;
     if(!o.seenUnlocks || typeof o.seenUnlocks !== 'object') o.seenUnlocks = {};
     if(!o.seenEvents || typeof o.seenEvents !== 'object') o.seenEvents = {};
     if(!o.achievements || typeof o.achievements !== 'object') o.achievements = {};
@@ -10080,6 +10094,15 @@ function bindUI(){
       syncSwitch('swHideOwned', S.settings.hideOwnedUpgrades);
       renderTree(true);
       toast(S.settings.hideOwnedUpgrades ? '已隐藏已购买的升级' : '已显示全部升级');
+    });
+  }
+  if($('swHideStoryPills')){
+    $('swHideStoryPills').addEventListener('click', function(){
+      S.settings.hideCraftedStoryPills = !S.settings.hideCraftedStoryPills;
+      save();
+      syncSwitch('swHideStoryPills', S.settings.hideCraftedStoryPills);
+      renderRecipes(true);
+      toast(S.settings.hideCraftedStoryPills ? '已隐藏本周目炼制过的剧情丹' : '已显示全部剧情丹');
     });
   }
   if($('autoRecipeSel')) $('autoRecipeSel').addEventListener('change', function(e){
